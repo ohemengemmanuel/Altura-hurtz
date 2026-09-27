@@ -1,0 +1,24 @@
+# Netlify settings for Altura Hertz Productions.
+# The website lives in development/. There is no build step.
+[build]
+  publish = "development"
+
+# Fonts never change once released, so browsers can keep them for a year.
+[[headers]]
+  for = "/assets/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Images are cached for a week so replaced photos still show up reasonably fast.
+[[headers]]
+  for = "/assets/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# Basic security headers for every page.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
