@@ -1,0 +1,9 @@
+# Font trial files. Not used by the site and their licences are unconfirmed.
+development/font-preview/
+development/font-preview.html
+
+# Office and OS clutter
+~$*
+Thumbs.db
+desktop.ini
+.DS_Store

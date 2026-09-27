@@ -1,0 +1,309 @@
+<title>Altura Hertz Palette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #030104;
+    --surface: #0a0614;
+    --line: #1d1733;
+    --text: #eef0fb;
+    --muted: #9a9cc4;
+    --accent: #280fd1;
+    --display: "Syne", "Arial Black", system-ui, sans-serif;
+    --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "DM Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 48px 72px;
+    display: grid;
+    gap: 56px;
+  }
+  header { display: grid; gap: 14px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(34px, 6vw, 60px);
+    line-height: 1.02;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h1 span { color: #9d3de3; }
+  .lede { max-width: 62ch; color: var(--muted); margin: 0; }
+
+  /* proportion strip */
+  .strip-block { display: grid; gap: 10px; }
+  .strip {
+    display: flex;
+    height: 64px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  .strip div { min-width: 3px; }
+  .strip-note { font-size: 13px; color: var(--muted); margin: 0; }
+
+  section.group { display: grid; gap: 18px; }
+  .group-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0;
+  }
+  .group-head p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .tile {
+    all: unset;
+    cursor: pointer;
+    display: grid;
+    grid-template-rows: 150px auto;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .tile:hover { transform: translateY(-2px); border-color: #3a2f66; }
+  .tile:focus-visible { outline: 2px solid #9d3de3; outline-offset: 3px; }
+  .swatch {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 12px 14px;
+  }
+  .swatch .hex {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: .04em;
+  }
+  .swatch .copied {
+    position: absolute;
+    top: 10px; right: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .tile.is-copied .copied { opacity: 1; }
+  .meta { padding: 12px 14px 14px; display: grid; gap: 4px; }
+  .name { font-weight: 500; font-size: 15px; }
+  .rgb { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .role { font-size: 13px; color: var(--muted); }
+
+  /* usage preview */
+  .preview {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: radial-gradient(120% 90% at 85% 0%, #280fd1 0%, #0c0145 42%, #030104 78%);
+    padding: 28px;
+    display: grid;
+    gap: 22px;
+  }
+  .pv-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; }
+  .pv-logo { font-family: var(--display); font-weight: 800; letter-spacing: .02em; }
+  .pv-links { display: flex; gap: 18px; font-size: 13px; color: #a5b5d4; letter-spacing: .08em; text-transform: uppercase; }
+  .pv-hero { font-family: var(--display); font-weight: 800; font-size: clamp(26px, 4.5vw, 42px); line-height: 1.05; max-width: 18ch; margin: 0; text-wrap: balance; }
+  .pv-sub { color: #a5b5d4; max-width: 48ch; margin: 0; }
+  .pv-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn { font-weight: 500; font-size: 14px; padding: 11px 20px; border-radius: 999px; }
+  .btn-primary { background: #9d3de3; color: #fff; }
+  .btn-ghost { border: 1px solid #618ceb; color: #eef0fb; }
+  .pv-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .pv-card { background: rgba(3,1,4,.6); border: 1px solid #16043f; border-radius: 8px; padding: 16px; display: grid; gap: 6px; }
+  .pv-card b { font-family: var(--display); font-weight: 600; }
+  .pv-card span { font-family: var(--mono); font-size: 13px; color: #76bced; }
+  .pv-card .tag { color: #bc2234; }
+
+  pre {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: #c9cbe8;
+  }
+  .code-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .copy-all {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+    background: transparent; color: var(--text); border: 1px solid #3a2f66; border-radius: 999px; padding: 7px 14px; cursor: pointer;
+  }
+  .copy-all:focus-visible { outline: 2px solid #9d3de3; outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { .tile, .swatch .copied { transition: none; } }
+</style>
+
+<main class="wrap">
+  <header>
+    <div class="eyebrow">Altura Hertz Productions · colour template</div>
+    <h1>Lit by the <span>booth LEDs</span></h1>
+    <p class="lede">Colours sampled from the five studio photos (control room, vocal booth, mixing desk, mic close-up). The photos are about 26% pure black and nearly all of the rest is blue and violet between 240° and 260° hue, with small patches of red from the booth ceiling light. Click a tile to copy its hex.</p>
+  </header>
+
+  <div class="strip-block">
+    <div class="eyebrow">How much of the photos each colour covers</div>
+    <div class="strip" id="strip"></div>
+    <p class="strip-note">Widths follow pixel counts from the photos. Warm reds are under 1%, so use them sparingly.</p>
+  </div>
+
+  <div id="groups"></div>
+
+  <section class="group">
+    <div class="group-head">
+      <h2>In use</h2>
+      <p>A rough header and service cards using the template.</p>
+    </div>
+    <div class="preview">
+      <div class="pv-nav">
+        <div class="pv-logo">ALTURA HERTZ</div>
+        <div class="pv-links"><span>Home</span><span>Purchase Beats</span><span>Contact</span></div>
+      </div>
+      <h3 class="pv-hero">Elevate your sound with us.</h3>
+      <p class="pv-sub">From recording to mixing and mastering, get your records refined for release.</p>
+      <div class="pv-row">
+        <span class="btn btn-primary">Book a session</span>
+        <span class="btn btn-ghost">View services</span>
+      </div>
+      <div class="pv-cards">
+        <div class="pv-card"><b>Recording</b><span>GH₵100 / hour</span></div>
+        <div class="pv-card"><b>Mixing &amp; Mastering</b><span>GH₵450 / track</span></div>
+        <div class="pv-card"><b>Custom Beats</b><span class="tag">● Now booking</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="code-head">
+      <h2>CSS tokens</h2>
+      <button class="copy-all" id="copyCss" type="button">Copy CSS</button>
+    </div>
+    <pre id="css"></pre>
+  </section>
+</main>
+
+<script>
+const groups = [
+  { title: "Grounds", note: "Backgrounds and surfaces. The room in the dark.", colors: [
+    { name: "Void", hex: "#030104", token: "void", role: "Page background", share: 26.3 },
+    { name: "Midnight Booth", hex: "#02012a", token: "midnight", role: "Section background", share: 12.1 },
+    { name: "Deep Indigo", hex: "#0c0145", token: "deep-indigo", role: "Cards, raised surfaces", share: 6.7 },
+    { name: "Plum Shadow", hex: "#16043f", token: "plum", role: "Borders, dividers", share: 3.1 },
+  ]},
+  { title: "Studio light", note: "The LED wash. Your brand colours.", colors: [
+    { name: "Studio Blue", hex: "#1501b9", token: "studio-blue", role: "Main brand colour", share: 6.1 },
+    { name: "Electric Indigo", hex: "#280fd1", token: "electric-indigo", role: "Hero glow, links", share: 5.4 },
+    { name: "Ultraviolet", hex: "#4e11dc", token: "ultraviolet", role: "Hover states, gradients", share: 5.1 },
+    { name: "Neon Violet", hex: "#9d3de3", token: "neon-violet", role: "Buttons, key highlights", share: 1.5 },
+  ]},
+  { title: "Screen & clouds", note: "Monitor glow and the cotton-cloud walls. Text and cool details.", colors: [
+    { name: "Dusk Periwinkle", hex: "#4642b6", token: "periwinkle", role: "Secondary buttons", share: 5.2 },
+    { name: "Monitor Blue", hex: "#618ceb", token: "monitor-blue", role: "Outlines, icons", share: 3.2 },
+    { name: "Ice Glow", hex: "#76bced", token: "ice", role: "Prices, small accents", share: 1.0 },
+    { name: "Cloud Haze", hex: "#a5b5d4", token: "cloud", role: "Secondary text", share: 2.5 },
+    { name: "Cloud White", hex: "#eef0fb", token: "white", role: "Main text", share: 1.0, derived: true },
+  ]},
+  { title: "Booth warmth", note: "The red ceiling light in the vocal booth. Use only for badges and alerts.", colors: [
+    { name: "Booth Red", hex: "#bc2234", token: "booth-red", role: "Live / recording badge", share: 0.6 },
+    { name: "Tape Rose", hex: "#c2346d", token: "rose", role: "Sale tags, notices", share: 0.3 },
+  ]},
+];
+
+const rgb = h => [1,3,5].map(i => parseInt(h.slice(i, i+2), 16));
+const lum = h => {
+  const [r,g,b] = rgb(h).map(v => { v /= 255; return v <= .03928 ? v/12.92 : ((v+.055)/1.055)**2.4; });
+  return .2126*r + .7152*g + .0722*b;
+};
+
+// proportion strip
+const strip = document.getElementById("strip");
+groups.flatMap(g => g.colors).forEach(c => {
+  const d = document.createElement("div");
+  d.style.flex = c.share;
+  d.style.background = c.hex;
+  d.title = `${c.name} ${c.hex}`;
+  strip.appendChild(d);
+});
+
+// tiles
+const host = document.getElementById("groups");
+host.style.display = "grid";
+host.style.gap = "48px";
+groups.forEach(g => {
+  const sec = document.createElement("section");
+  sec.className = "group";
+  sec.innerHTML = `<div class="group-head"><h2>${g.title}</h2><p>${g.note}</p></div><div class="tiles"></div>`;
+  const tiles = sec.querySelector(".tiles");
+  g.colors.forEach(c => {
+    const ink = lum(c.hex) > .35 ? "#030104" : "#eef0fb";
+    const b = document.createElement("button");
+    b.className = "tile";
+    b.type = "button";
+    b.setAttribute("aria-label", `Copy ${c.name} ${c.hex}`);
+    b.innerHTML = `
+      <div class="swatch" style="background:${c.hex};color:${ink}">
+        <span class="hex">${c.hex.toUpperCase()}</span><span class="copied">Copied</span>
+      </div>
+      <div class="meta">
+        <div class="name">${c.name}</div>
+        <div class="rgb">rgb(${rgb(c.hex).join(", ")})</div>
+        <div class="role">${c.role}${c.derived ? " · derived" : ""}</div>
+      </div>`;
+    b.addEventListener("click", () => copy(c.hex.toUpperCase(), b));
+    tiles.appendChild(b);
+  });
+  host.appendChild(sec);
+});
+
+// css tokens
+const css = ":root {\n" + groups.flatMap(g => g.colors)
+  .map(c => `  --ah-${c.token}: ${c.hex};`).join("\n") + "\n}";
+document.getElementById("css").textContent = css;
+document.getElementById("copyCss").addEventListener("click", e => copy(css, null, e.currentTarget));
+
+function copy(text, tile, btn) {
+  const done = () => {
+    if (tile) { tile.classList.add("is-copied"); setTimeout(() => tile.classList.remove("is-copied"), 1200); }
+    if (btn) { btn.textContent = "Copied"; setTimeout(() => btn.textContent = "Copy CSS", 1200); }
+  };
+  try {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallback(text, done));
+  } catch { fallback(text, done); }
+}
+function fallback(text, done) {
+  const pre = document.getElementById("css");
+  const r = document.createRange();
+  if (text.startsWith(":root")) { r.selectNodeContents(pre); }
+  else return;
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r); done();
+}
+</script>
