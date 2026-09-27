@@ -407,8 +407,25 @@ p { margin: 0; }
    sit on the same colour as the section above) so headings don't crowd the top edge. */
 .section-studio {
   position: relative;
+  overflow: hidden;
   background: var(--ah-midnight);
   background-image: radial-gradient(65% 85% at 100% 0%, rgba(78, 17, 220, .18) 0%, transparent 62%);
+}
+.section-studio > .container { position: relative; z-index: 1; }
+/* Same studio photo, faded into the section's own background behind it: blurred, darkened and
+   feathered at the edges so it dissolves into the flat midnight tint rather than reading as a
+   second, competing photo next to the sharp one in the card. */
+.section-studio-bg {
+  position: absolute; inset: 0; z-index: 0;
+}
+.section-studio-bg img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: blur(28px) brightness(.5) saturate(1.1);
+  transform: scale(1.15);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 70%, transparent 100%), linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 70%, transparent 100%), linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  mask-composite: intersect;
 }
 .section-policies {
   position: relative;
