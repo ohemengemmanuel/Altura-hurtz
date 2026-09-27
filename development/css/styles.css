@@ -399,6 +399,156 @@ p { margin: 0; }
 .section-head { display: grid; gap: 16px; margin-bottom: 48px; max-width: 680px; }
 .section-head p { color: var(--muted); }
 
+/* Section backdrops (v1.14.1)
+   A couple of sections after the hero get their own tint, stepping through the same
+   control-room palette used elsewhere (midnight, plum) so the page has some variation without
+   every section changing. No border lines between sections — the colour shift itself is the
+   seam. Tinted sections get their own top padding (instead of the padding-top:0 used when they
+   sit on the same colour as the section above) so headings don't crowd the top edge. */
+.section-studio {
+  position: relative;
+  background: var(--ah-midnight);
+  background-image: radial-gradient(65% 85% at 100% 0%, rgba(78, 17, 220, .18) 0%, transparent 62%);
+}
+.section-policies {
+  position: relative;
+  overflow: hidden;
+  background: var(--ah-plum);
+}
+.section-policies .container { position: relative; z-index: 2; }
+
+/* Background video (v1.16.0): the source clip is a vertical (portrait) video, so it can't just
+   cover this wide, short section without cropping away almost all of it. Instead a blurred,
+   scaled-up copy of it fills the section as an ambient backdrop, while the real clip plays
+   small and uncropped in its native portrait framing on top. */
+.policy-video-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+.policy-video-bg-blur {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: blur(38px) brightness(.5) saturate(1.15);
+  transform: scale(1.25);
+}
+.policy-video-overlay { position: absolute; inset: 0; background: rgba(22, 4, 63, .55); }
+.policy-video-fg {
+  position: absolute;
+  left: clamp(20px, 4vw, 48px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: clamp(120px, 14vw, 190px);
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 20px 40px rgba(3, 1, 4, .5);
+}
+@media (min-width: 961px) {
+  .section-policies .container { padding-left: clamp(140px, 16vw, 220px); }
+}
+@media (max-width: 960px) {
+  .policy-video-fg { display: none; }
+}
+
+/* Mixing deck (v1.15.1): a small hardware panel bled halfway off the right edge of the
+   viewport and tilted, like a console glimpsed at an angle. Seven vertical channel faders,
+   same brushed-metal cap and glowing track as the gain fader on the CTA band, at slightly
+   different starting levels so it reads like a real mix, not a row of identical sliders.
+   Draggable, decorative, not wired to anything else. */
+.mixing-deck {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(calc(40% - 190px), calc(-50% + 20px)) rotate(-9.9deg) scale(1.4);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.8vw, 20px);
+  padding: clamp(18px, 2.4vw, 26px) clamp(20px, 2.6vw, 30px) clamp(30px, 3.4vw, 38px);
+  border-radius: 14px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, rgba(34, 30, 62, .94), rgba(12, 9, 30, .96));
+  border: 1px solid rgba(165, 181, 212, .22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 24px 48px rgba(3, 1, 4, .55);
+}
+.deck-top { display: flex; align-items: center; gap: clamp(12px, 1.6vw, 18px); }
+.deck-knob {
+  position: relative;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #4a4d68, #1c1930 72%);
+  border: 1px solid rgba(165, 181, 212, .3);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, .1), inset 0 -2px 3px rgba(0, 0, 0, .6), 0 2px 4px rgba(3, 1, 4, .6);
+}
+.deck-knob::after {
+  content: "";
+  position: absolute; top: 2px; left: 50%;
+  width: 2px; height: 6px;
+  background: var(--ah-ice); border-radius: 2px;
+  transform-origin: 50% 7px;
+  transform: translateX(-50%) rotate(var(--r, 0deg));
+}
+.deck-ports { display: flex; gap: 8px; margin-left: auto; }
+.deck-port {
+  width: 13px; height: 13px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #000 0%, #050308 55%, #171330 100%);
+  border: 2px solid #3a3552;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, .9), 0 1px 0 rgba(255, 255, 255, .08);
+}
+.deck-faders { display: flex; align-items: flex-end; gap: clamp(10px, 1.4vw, 16px); }
+.mixing-deck .meter-bank {
+  position: static;
+  width: auto; height: clamp(110px, 13vw, 150px);
+  padding: 0;
+  opacity: 1;
+  mask-image: none; -webkit-mask-image: none;
+}
+.mix-fader {
+  --pos: .6;
+  --cap-h: 16px;
+  position: relative;
+  width: 22px; height: clamp(110px, 13vw, 150px);
+  cursor: ns-resize; touch-action: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.mix-fader-track {
+  position: absolute; left: 50%; top: calc(var(--cap-h) / 2); bottom: calc(var(--cap-h) / 2);
+  width: 5px; transform: translateX(-50%);
+  border-radius: 3px;
+  background: linear-gradient(90deg, #05030d 0%, #0d0a1c 50%, #05030d 100%);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, .9), 0 0 0 1px #6f7288, 0 0 0 2px rgba(20, 16, 40, .9);
+  overflow: hidden;
+}
+.mix-fader-fill {
+  position: absolute; inset: 0;
+  background: linear-gradient(0deg, var(--ah-studio-blue), var(--ah-neon-violet));
+  box-shadow: 0 0 6px rgba(157, 61, 227, .5);
+  transform-origin: 50% 100%;
+  transform: scaleY(var(--pos));
+}
+.mix-fader-cap {
+  position: absolute; left: 50%; width: 16px; height: var(--cap-h);
+  bottom: calc(var(--pos) * (100% - var(--cap-h)));
+  transform: translateX(-50%);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #f2f4fb 0%, #c9ccda 18%, #9da1b5 50%, #7c8098 82%, #5d6078 100%);
+  border: 1px solid #4b4d63;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 -1px 0 rgba(0, 0, 0, .35), 0 2px 5px rgba(3, 1, 4, .7);
+}
+.mix-fader-label {
+  position: absolute; left: 0; right: 0; bottom: -20px; text-align: center;
+  font-family: var(--mono); font-size: 10px; color: var(--ah-cloud);
+}
+.mix-fader:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* Keep the policy text clear of the deck's visible half on desktop */
+@media (min-width: 861px) {
+  .section-policies .container { padding-right: clamp(120px, 14vw, 200px); }
+}
+@media (max-width: 860px) {
+  .mixing-deck { display: none; }
+}
+
 .intro-grid {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
@@ -439,10 +589,9 @@ p { margin: 0; }
 .services-section {
   /* Spacing set to half of the original full screen layout (v1.4.1) */
   padding-top: clamp(34px, calc(18vh - 84px), 84px);
-  padding-bottom: 0;
+  padding-bottom: clamp(64px, 9vw, 112px);
   scroll-margin-top: 68px;
 }
-.services-section + .section { padding-top: clamp(142px, calc(15.04vw - 46px), 260px); } /* 1.7x the v1.4.1 gap below the services (v1.13.1) */
 .services-section .section-head { margin-bottom: clamp(14px, 3vh, 28px); gap: 8px; max-width: none; }
 
 .service-grid {
@@ -1192,7 +1341,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.8); }
     0 8px 14px rgba(3, 1, 4, .75),
     0 2px 3px rgba(3, 1, 4, .8);
 }
-.gain-fader:hover .fader-cap, .gain-fader.is-dragging .fader-cap { border-color: var(--accent); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 -1px 0 rgba(0, 0, 0, .35), 0 0 0 1px var(--accent), 0 0 14px rgba(157, 61, 227, .55), 0 8px 14px rgba(3, 1, 4, .75); }
+.gain-fader:hover .fader-cap, .gain-fader.is-dragging .fader-cap { border-color: var(--accent); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 -1px 0 rgba(0, 0, 0, .35), 0 8px 14px rgba(3, 1, 4, .75); }
 .knob-label {
   font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
   color: var(--ah-cloud);
@@ -1241,8 +1390,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.8); }
 .service-card:hover .card-link .material-symbols-rounded { transform: translateX(3px); }
 .socials a { transition: color .15s ease, background-color .15s ease, transform .2s ease; }
 .socials a:hover { transform: translateY(-2px); }
-.policy-list li, .contact-item, .steps li { transition: border-color .2s ease; }
-.policy-list li:hover, .contact-item:hover, .steps li:hover { border-color: var(--line-strong); }
+.contact-item { transition: border-color .2s ease; }
+.contact-item:hover { border-color: var(--line-strong); }
 
 /* Booking: total pulses when the price changes; summary panel eases in */
 @keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.06); color: var(--ah-ice); } 100% { transform: scale(1); } }

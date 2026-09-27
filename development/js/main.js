@@ -145,6 +145,46 @@
     fader.addEventListener("dblclick", () => set(0));
   });
 
+  // Mixing deck channel faders (Studio policies). Drag, click the track, scroll, or use arrow
+  // keys; double-click resets to that channel's starting level.
+  document.querySelectorAll(".mix-fader").forEach((fader) => {
+    const track = fader.querySelector(".mix-fader-track");
+    const start = parseFloat(fader.dataset.start || "0.6");
+    let pos = start;
+    const set = (p) => {
+      pos = Math.min(1, Math.max(0, p));
+      fader.style.setProperty("--pos", pos.toFixed(3));
+      fader.setAttribute("aria-valuenow", String(Math.round(pos * 100)));
+    };
+    const fromPointer = (y) => {
+      const r = track.getBoundingClientRect();
+      return 1 - (y - r.top) / r.height;
+    };
+    set(start);
+    fader.addEventListener("pointerdown", (e) => {
+      fader.setPointerCapture(e.pointerId);
+      fader.classList.add("is-dragging");
+      set(fromPointer(e.clientY));
+    });
+    fader.addEventListener("pointermove", (e) => {
+      if (fader.hasPointerCapture(e.pointerId)) set(fromPointer(e.clientY));
+    });
+    const stop = () => fader.classList.remove("is-dragging");
+    fader.addEventListener("pointerup", stop);
+    fader.addEventListener("pointercancel", stop);
+    fader.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      set(pos + (e.deltaY < 0 ? .05 : -.05));
+    }, { passive: false });
+    fader.addEventListener("keydown", (e) => {
+      const step = { ArrowUp: .05, ArrowRight: .05, ArrowDown: -.05, ArrowLeft: -.05 }[e.key];
+      if (step) { set(pos + step); e.preventDefault(); }
+      else if (e.key === "Home") { set(0); e.preventDefault(); }
+      else if (e.key === "End") { set(1); e.preventDefault(); }
+    });
+    fader.addEventListener("dblclick", () => set(start));
+  });
+
   // Fill contact details from config: <span data-config="contact.phone"></span>
   const read = (path) => path.split(".").reduce((o, k) => (o ? o[k] : undefined), cfg);
   document.querySelectorAll("[data-config]").forEach((el) => {
