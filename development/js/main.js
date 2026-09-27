@@ -21,6 +21,20 @@
     });
   }
 
+  // Split nav: the link pill gets its background once the hero has scrolled out from under the header.
+  const header = document.querySelector(".site-header");
+  const heroEl = document.querySelector(".hero, .page-hero");
+  if (header && heroEl) {
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(([en]) => header.classList.toggle("is-scrolled", !en.isIntersecting),
+        { rootMargin: "-68px 0px 0px 0px" }).observe(heroEl);
+    } else {
+      const check = () => header.classList.toggle("is-scrolled", heroEl.getBoundingClientRect().bottom < 68);
+      window.addEventListener("scroll", check, { passive: true });
+      check();
+    }
+  }
+
   // Links to a section on the current page scroll smoothly. Links to other pages load normally,
   // so a page never animates a scroll while it is still loading.
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
