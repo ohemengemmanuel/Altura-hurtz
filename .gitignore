@@ -7,3 +7,6 @@ development/font-preview.html
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Local Netlify folder
+.netlify
