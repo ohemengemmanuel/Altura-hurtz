@@ -170,13 +170,18 @@ p { margin: 0; }
     backdrop-filter: blur(14px);
     box-shadow: 0 10px 30px rgba(3, 1, 4, .45);
   }
+  /* Once the pill background shows up, every nav item collapses to just its icon */
+  .site-header.is-scrolled .nav-links a:not(.btn) .material-symbols-rounded { font-size: 18px; opacity: 1; }
+  .site-header.is-scrolled .nav-links a .nav-label { max-width: 0; opacity: 0; }
+  .site-header.is-scrolled .nav-links a:not(.btn) { padding-inline: 10px; }
+  .site-header.is-scrolled .nav-links .btn { gap: 0; padding-inline: 10px; }
   /* The logo gets a matching pill at the same moment as the links (v1.11.2) */
   .site-header .brand {
     padding: 3.2px 16px 3.2px 3.2px;
     margin-left: -3.2px;
     border-radius: 999px;
     border: 1px solid transparent;
-    transition: background-color .3s ease, border-color .3s ease, box-shadow .3s ease, backdrop-filter .3s ease;
+    transition: background-color .3s ease, border-color .3s ease, box-shadow .3s ease, backdrop-filter .3s ease, padding .7s ease, gap .7s ease;
   }
   .site-header.is-scrolled .brand {
     background: rgba(10, 6, 24, .78);
@@ -184,7 +189,11 @@ p { margin: 0; }
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
     box-shadow: 0 10px 30px rgba(3, 1, 4, .45);
+    /* Once the pill background shows up, collapse down to just the icon */
+    padding-right: 3.2px;
+    gap: 0;
   }
+  .site-header.is-scrolled .brand-name { max-width: 0; opacity: 0; }
 }
 
 .nav {
@@ -204,12 +213,17 @@ p { margin: 0; }
   background: radial-gradient(circle at 30% 30%, var(--ah-neon-violet), var(--ah-studio-blue) 70%);
 }
 .brand-mark .material-symbols-rounded { font-size: 20px; color: #fff; }
-.brand-name { font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: .04em; line-height: 1.1; }
+.brand-name {
+  font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: .04em; line-height: 1.1;
+  overflow: hidden; white-space: nowrap; max-width: 220px; opacity: 1;
+  transition: max-width .7s cubic-bezier(.6, .05, .3, 1), opacity .45s ease;
+}
 .brand-name small { display: block; font-family: var(--mono); font-weight: 400; font-size: 10px; letter-spacing: .22em; color: var(--muted); }
 
 .nav-links { display: flex; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .nav-links a {
-  display: block;
+  display: flex;
+  align-items: center;
   padding: 8px 14px;
   color: var(--muted);
   text-decoration: none;
@@ -217,9 +231,20 @@ p { margin: 0; }
   letter-spacing: .06em;
   text-transform: uppercase;
   border-radius: 999px;
+  transition: padding .3s ease;
+}
+/* Plain links start icon-less (today's look). The icon exists in the markup so it can take
+   over once the header collapses to the icon-only pill (below, v1.17.0). */
+.nav-links a:not(.btn) .material-symbols-rounded {
+  font-size: 0; opacity: 0;
+  transition: font-size .25s ease, opacity .2s ease;
+}
+.nav-label {
+  overflow: hidden; white-space: nowrap; max-width: 160px; opacity: 1;
+  transition: max-width .35s cubic-bezier(.6, .05, .3, 1), opacity .2s ease;
 }
 .nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--text); background: var(--ah-plum); }
-.nav-links .btn { display: inline-flex; padding: 8px 16px; text-transform: none; letter-spacing: 0; color: #fff; }
+.nav-links .btn { display: inline-flex; padding: 8px 16px; text-transform: none; letter-spacing: 0; color: #fff; transition: background .15s ease, transform .2s ease, box-shadow .2s ease, padding .3s ease, gap .3s ease; }
 .nav-links .btn:hover { background: var(--accent-hover); }
 
 /* Phone menu button: an equalizer. Four bars bounce like a level meter;
