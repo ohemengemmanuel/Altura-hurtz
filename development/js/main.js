@@ -93,6 +93,18 @@
     }).observe(pair);
   });
 
+  // Background videos (Studio policies) only fetch and decode once the section is on screen,
+  // and pause again once it scrolls away, so they cost nothing on initial page load.
+  document.querySelectorAll(".lazy-video").forEach((video) => {
+    if (!("IntersectionObserver" in window)) { video.play().catch(() => {}); return; }
+    new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) video.play().catch(() => {});
+        else video.pause();
+      });
+    }, { rootMargin: "200px 0px" }).observe(video);
+  });
+
   // Gain fader on the meter bank. Drag or click the track, scroll, or use the keys; double-click resets.
   document.querySelectorAll(".gain-fader").forEach((fader) => {
     const control = fader.closest(".gain-control");

@@ -423,6 +423,14 @@ p { margin: 0; }
 .section { padding-block: clamp(80px, 11vw, 136px); }
 .section-head { display: grid; gap: 16px; margin-bottom: 48px; max-width: 680px; }
 .section-head p { color: var(--muted); }
+.section-head-top { display: flex; align-items: center; gap: 10px; }
+.section-icon {
+  flex: none;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 30% 30%, var(--ah-neon-violet), var(--ah-studio-blue) 70%);
+}
+.section-icon .material-symbols-rounded { font-size: 18px; color: #fff; }
 
 /* Section backdrops (v1.14.1)
    A couple of sections after the hero get their own tint, stepping through the same
@@ -490,6 +498,10 @@ p { margin: 0; }
 }
 @media (max-width: 960px) {
   .policy-video-fg { display: none; }
+  /* The portrait clip is hidden here, so the blurred backdrop is the only video left on
+     screen — let it read clearly instead of the desktop's dim ambient backdrop. */
+  .policy-video-bg-blur { filter: blur(18px) brightness(.72) saturate(1.15); }
+  .policy-video-overlay { background: rgba(22, 4, 63, .35); }
 }
 
 /* Mixing deck (v1.15.1): a small hardware panel bled halfway off the right edge of the
