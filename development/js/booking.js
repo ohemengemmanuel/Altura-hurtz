@@ -375,6 +375,8 @@
         .upload(uploads[i].path, uploads[i].file, { contentType: uploads[i].file.type || "application/octet-stream", upsert: false });
       if (upErr) { console.error("Upload failed", uploads[i].file.name, upErr); failed.push(uploads[i].file.name); }
     }
+    // Files are up: send the studio's email now, with them attached. A timer also does this every 5 minutes.
+    if (uploads.length) client.functions.invoke("booking-alert", { body: {} }).catch(() => {});
     return failed;
   }
 

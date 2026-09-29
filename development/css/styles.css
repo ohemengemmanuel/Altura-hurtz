@@ -1697,6 +1697,7 @@ button.stat:hover { border-color: var(--line-strong); }
 .file-links li > .material-symbols-rounded { font-size: 19px; color: var(--price); }
 .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-links .is-loading, .file-links a:not([href]) { opacity: .5; pointer-events: none; }
+.file-note { margin: 4px 0 0; font-size: 13px; }
 .notes-actions { display: flex; justify-content: flex-end; }
 .summary-raw summary { cursor: pointer; font-size: 14px; color: var(--link); }
 .summary-raw pre { margin: 10px 0; white-space: pre-wrap; font-family: var(--mono); font-size: 12.5px; color: var(--ah-cloud); background: var(--ah-void); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px; }

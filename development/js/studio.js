@@ -414,8 +414,13 @@ async function openBooking(id) {
       (b.notes ? '<div class="dialog-section"><h3>Client notes</h3><p class="client-notes">' + esc(b.notes) + "</p></div>" : "") +
 
       (files.length ? '<div class="dialog-section"><h3>Files</h3><ul class="file-links" id="file-links">' +
-        files.map((f) => '<li><span class="material-symbols-rounded" aria-hidden="true">audio_file</span><span class="file-name">' + esc(f.name) + '</span><span class="muted">' + fmtSize(f.size) + '</span><a class="btn btn-ghost btn-sm is-loading" data-path="' + esc(f.path) + '"><span class="material-symbols-rounded" aria-hidden="true">download</span>Download</a></li>').join("") +
-      "</ul></div>" : "") +
+        files.map((f) => '<li><span class="material-symbols-rounded" aria-hidden="true">audio_file</span><span class="file-name">' + esc(f.name) + '</span><span class="muted">' + fmtSize(f.size) + "</span>" +
+          (b.files_purged_at ? '<span class="muted">Emailed</span>' : '<a class="btn btn-ghost btn-sm is-loading" data-path="' + esc(f.path) + '"><span class="material-symbols-rounded" aria-hidden="true">download</span>Download</a>') + "</li>").join("") +
+      "</ul>" +
+      (b.files_purged_at
+        ? '<p class="muted file-note">These files were emailed to the studio and removed from storage on ' + esc(new Date(b.files_purged_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })) + ". Find them in the booking email.</p>"
+        : '<p class="muted file-note">Also attached to the booking email. Removed from storage 14 days after that email.</p>') +
+      "</div>" : "") +
 
       '<div class="dialog-section"><h3><label for="studio-notes">Studio notes</label></h3>' +
         '<textarea id="studio-notes" placeholder="Only the studio sees this. Deposit received, engineer, follow ups">' + esc(b.studio_notes || "") + "</textarea>" +
@@ -428,7 +433,7 @@ async function openBooking(id) {
 
   if (!dialog.open) dialog.showModal();
 
-  if (files.length) {
+  if (files.length && !b.files_purged_at) {
     const { data, error } = await supabase.storage.from("booking-files").createSignedUrls(files.map((f) => f.path), 3600, { download: true });
     dialog.querySelectorAll("#file-links a[data-path]").forEach((a) => {
       const hit = data && data.find((d) => d.path === a.dataset.path);
