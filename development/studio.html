@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studio Bookings | Altura Hertz Productions</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#030104">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='.3' cy='.3' r='.8'%3E%3Cstop offset='0' stop-color='%239d3de3'/%3E%3Cstop offset='.7' stop-color='%231501b9'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23g)'/%3E%3Cpath d='M14 34h6l4-12 6 22 6-26 5 18 3-6h6' fill='none' stroke='%23eef0fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <meta name="color-scheme" content="dark">
+  <style>html,body{background:#030104;color:#eef0fb}</style>
+  <link rel="preload" href="assets/fonts/material-symbols-rounded-300-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/inter-600-800-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="studio">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="studio-bar">
+    <div class="container studio-bar-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><span class="material-symbols-rounded" aria-hidden="true">graphic_eq</span></span>
+        <span class="brand-name">ALTURA HERTZ<small>STUDIO</small></span>
+      </a>
+      <div class="studio-user" id="studio-user" hidden>
+        <span class="muted" id="studio-email"></span>
+        <button class="btn btn-ghost btn-sm" type="button" id="sign-out"><span class="material-symbols-rounded" aria-hidden="true">logout</span>Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="container studio-main">
+    <!-- Supabase keys missing from config.js -->
+    <section class="studio-panel" id="setup-view" hidden>
+      <span class="material-symbols-rounded studio-panel-icon" aria-hidden="true">database</span>
+      <h1>Connect Supabase</h1>
+      <p class="muted">Add the Supabase project URL and publishable key to <code>js/config.js</code>, then run <code>supabase/schema.sql</code> in the Supabase SQL Editor. Bookings will appear here once that is done.</p>
+    </section>
+
+    <!-- Sign in -->
+    <section class="studio-panel" id="login-view" hidden>
+      <span class="material-symbols-rounded studio-panel-icon" aria-hidden="true">lock</span>
+      <h1>Studio sign in</h1>
+      <form class="form-card login-card" id="login-form" novalidate>
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" autocomplete="current-password" required>
+        </div>
+        <p class="form-message" id="login-message" role="alert" hidden></p>
+        <button class="btn btn-primary" type="submit"><span class="material-symbols-rounded" aria-hidden="true">login</span><span class="label">Sign in</span></button>
+        <button class="link-btn" type="button" id="forgot">Forgot password?</button>
+      </form>
+    </section>
+
+    <!-- New password after following a reset link -->
+    <section class="studio-panel" id="reset-view" hidden>
+      <span class="material-symbols-rounded studio-panel-icon" aria-hidden="true">key</span>
+      <h1>Choose a new password</h1>
+      <form class="form-card login-card" id="reset-form" novalidate>
+        <div class="field">
+          <label for="new-password">New password</label>
+          <input type="password" id="new-password" autocomplete="new-password" minlength="8" required>
+          <span class="hint">At least 8 characters.</span>
+        </div>
+        <p class="form-message" id="reset-message" role="alert" hidden></p>
+        <button class="btn btn-primary" type="submit"><span class="label">Save password</span></button>
+      </form>
+    </section>
+
+    <!-- Signed in but not listed in public.staff -->
+    <section class="studio-panel" id="denied-view" hidden>
+      <span class="material-symbols-rounded studio-panel-icon" aria-hidden="true">block</span>
+      <h1>No studio access</h1>
+      <p class="muted">This account is signed in but is not on the studio staff list. Ask the studio owner to add it.</p>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dash-view" hidden>
+      <div class="studio-head">
+        <div>
+          <p class="eyebrow">Studio</p>
+          <h1>Bookings</h1>
+        </div>
+        <div class="studio-head-actions">
+          <span class="live" id="live" title="New bookings appear automatically"><i aria-hidden="true"></i><span>Live</span></span>
+          <button class="btn btn-ghost btn-sm" type="button" id="refresh"><span class="material-symbols-rounded" aria-hidden="true">refresh</span>Refresh</button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <button class="stat" type="button" data-stat="new">
+          <span class="stat-label"><span class="material-symbols-rounded" aria-hidden="true">notifications_active</span>New</span>
+          <strong id="stat-new">0</strong>
+          <span class="stat-note">Waiting for a reply</span>
+        </button>
+        <button class="stat" type="button" data-stat="upcoming">
+          <span class="stat-label"><span class="material-symbols-rounded" aria-hidden="true">event</span>Next 7 days</span>
+          <strong id="stat-upcoming">0</strong>
+          <span class="stat-note">Sessions booked</span>
+        </button>
+        <button class="stat" type="button" data-stat="confirmed">
+          <span class="stat-label"><span class="material-symbols-rounded" aria-hidden="true">hourglass_top</span>Awaiting payment</span>
+          <strong id="stat-confirmed">0</strong>
+          <span class="stat-note">Confirmed, not paid</span>
+        </button>
+        <div class="stat">
+          <span class="stat-label"><span class="material-symbols-rounded" aria-hidden="true">payments</span>Paid this month</span>
+          <strong id="stat-month">0</strong>
+          <span class="stat-note">Paid and completed</span>
+        </div>
+      </div>
+
+      <div class="studio-toolbar">
+        <div class="tabs" role="tablist" aria-label="Status" id="status-tabs"></div>
+        <div class="studio-filters">
+          <label class="search">
+            <span class="material-symbols-rounded" aria-hidden="true">search</span>
+            <input type="search" id="search" placeholder="Name, phone or reference" aria-label="Search bookings">
+          </label>
+          <select id="service-filter" aria-label="Service">
+            <option value="">All services</option>
+          </select>
+          <div class="view-toggle" role="group" aria-label="View">
+            <button type="button" data-view="list" aria-pressed="true"><span class="material-symbols-rounded" aria-hidden="true">list</span>List</button>
+            <button type="button" data-view="schedule" aria-pressed="false"><span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>Schedule</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="booking-list" id="booking-list" aria-live="polite"></div>
+      <div class="schedule" id="schedule" hidden></div>
+    </section>
+  </main>
+
+  <dialog class="booking-dialog" id="booking-dialog" aria-labelledby="dialog-title"></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="js/config.js"></script>
+  <script type="module" src="js/studio.js"></script>
+</body>
+</html>

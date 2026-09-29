@@ -10,3 +10,13 @@ desktop.ini
 
 # Local Netlify folder
 .netlify
+
+# Secrets. Real keys and passwords belong in ..\Private, never in this repo.
+.env
+.env.*
+*.pem
+*.key
+private/
+Private/
+secrets/
+credentials/

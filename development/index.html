@@ -32,7 +32,7 @@
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
       <ul class="nav-links" id="nav-links">
         <li><a href="index.html" aria-current="page"><span class="material-symbols-rounded" aria-hidden="true">home</span><span class="nav-label">Home</span></a></li>
-        <li><a href="beats.html"><span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span><span class="nav-label">Purchase Beats</span></a></li>
+        <li><a href="beats.html"><span class="material-symbols-rounded" aria-hidden="true">piano</span><span class="nav-label">Custom Beats</span></a></li>
         <li><a href="contact.html"><span class="material-symbols-rounded" aria-hidden="true">call</span><span class="nav-label">Contact Us</span></a></li>
         <li><a class="btn btn-primary" href="index.html#services"><span class="material-symbols-rounded" aria-hidden="true">event_available</span><span class="nav-label">Book a session</span></a></li>
       </ul>
@@ -47,7 +47,6 @@
         <p class="lede">From recording to mixing and mastering, get your records refined for release.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#services"><span class="material-symbols-rounded" aria-hidden="true">event_available</span>Book a session</a>
-          <a class="btn btn-ghost" href="beats.html"><span class="material-symbols-rounded" aria-hidden="true">library_music</span>Purchase beats</a>
         </div>
       </div>
     </section>
@@ -55,9 +54,8 @@
     <section class="services-section" id="services" aria-labelledby="services-title">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">Book a session</p>
-          <h2 id="services-title">Choose your session</h2>
-          <p>See your price as you fill the form. We confirm your time before you pay.</p>
+          <h2 id="services-title">Services</h2>
+          <p>Recording, mixing and mastering, custom beats and cover art. Pick a service to get started.</p>
         </div>
         <div class="service-grid">
           <a class="service-card" href="recording-mixing-mastering.html">
@@ -67,8 +65,6 @@
             </div>
             <div class="card-body">
               <h3>Recording + mixing and mastering</h3>
-              <span class="card-price"><span data-price="recordingPerHour">GH&#8373;100</span>/hr + <span data-price="mixMasterPerTrack">GH&#8373;450</span>/track</span>
-              <span class="card-link">Book this session<span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></span>
             </div>
           </a>
           <a class="service-card" href="recording.html">
@@ -78,8 +74,6 @@
             </div>
             <div class="card-body">
               <h3>Recording only</h3>
-              <span class="card-price"><span data-price="recordingPerHour">GH&#8373;100</span> per hour</span>
-              <span class="card-link">Book recording<span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></span>
             </div>
           </a>
           <a class="service-card" href="mixing-mastering.html">
@@ -89,8 +83,6 @@
             </div>
             <div class="card-body">
               <h3>Mixing and mastering</h3>
-              <span class="card-price"><span data-price="mixMasterPerTrack">GH&#8373;450</span> per track</span>
-              <span class="card-link">Send your project<span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></span>
             </div>
           </a>
           <a class="service-card" href="beats.html#custom">
@@ -100,19 +92,16 @@
             </div>
             <div class="card-body">
               <h3>Custom beats</h3>
-              <span class="card-price">Quote on request</span>
-              <span class="card-link">Request a beat<span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></span>
             </div>
           </a>
           <a class="service-card" href="cover-art.html">
             <div class="card-media card-glow-5">
               <span class="card-icon"><span class="material-symbols-rounded" aria-hidden="true">image</span></span>
-              <div class="card-art"><span class="material-symbols-rounded" aria-hidden="true">photo_library</span></div>
+              <img src="assets/img/thumb-cover-art.webp" alt="Cover art of an artist falling through a violet and blue sky" loading="lazy">
+              <span class="card-vinyl" aria-hidden="true"></span>
             </div>
             <div class="card-body">
               <h3>Cover arts</h3>
-              <span class="card-price">Quote on request</span>
-              <span class="card-link">Request artwork<span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></span>
             </div>
           </a>
         </div>
@@ -128,14 +117,13 @@
             <p class="eyebrow">The studio</p>
             <h2>A room built around your voice</h2>
           </div>
-          <p>You record in an isolated vocal booth while the engineer runs the session from the control room on the other side of the glass. Every take is captured through a Universal Audio Apollo interface, checked on KRK monitors, then edited, tuned and balanced until the record is ready for streaming platforms.</p>
+          <p>You record in an isolated vocal booth while the engineer runs the session from the control room on the other side of the glass. Every take is captured on a Lauten Audio LA-320 V2 microphone through a Universal Audio Apollo Twin interface, checked on KRK monitors, then edited, tuned and balanced until the record is ready for streaming platforms.</p>
           <ul class="gear" aria-label="Studio gear">
             <li><span class="material-symbols-rounded" aria-hidden="true">mic</span>Isolated vocal booth</li>
-            <li><span class="material-symbols-rounded" aria-hidden="true">settings_input_component</span>Universal Audio Apollo interface</li>
+            <li><span class="material-symbols-rounded" aria-hidden="true">mic_external_on</span>Lauten Audio LA-320 V2 microphone</li>
+            <li><span class="material-symbols-rounded" aria-hidden="true">settings_input_component</span>Universal Audio Apollo Twin interface</li>
             <li><span class="material-symbols-rounded" aria-hidden="true">speaker</span>KRK studio monitors</li>
-            <li><span class="material-symbols-rounded" aria-hidden="true">piano</span>FL Studio</li>
-            <li><span class="material-symbols-rounded" aria-hidden="true">tune</span>FabFilter Pro-Q 4 and Pro-C 3</li>
-            <li><span class="material-symbols-rounded" aria-hidden="true">graphic_eq</span>Auto-Tune Pro</li>
+            <li><span class="material-symbols-rounded" aria-hidden="true">piano</span>FL Studio + Cubase + Logic Pro + LUNA</li>
           </ul>
         </div>
       </div>
@@ -226,6 +214,12 @@
     <section class="section">
       <div class="container">
         <div class="cta-band">
+          <div class="cta-video-bg" aria-hidden="true">
+            <video class="cta-video lazy-video" muted loop playsinline preload="none">
+              <source src="assets/video/cta-bg.mp4" type="video/mp4">
+            </video>
+            <div class="cta-video-overlay"></div>
+          </div>
           <div class="cta-copy">
             <div>
               <h2>Ready when you are</h2>
@@ -270,7 +264,7 @@
         <div>
           <h4>Studio</h4>
           <ul>
-            <li><a href="beats.html">Purchase beats</a></li>
+            <li><a href="beats.html">Custom beats</a></li>
             <li><a href="contact.html">Contact us</a></li>
           </ul>
         </div>

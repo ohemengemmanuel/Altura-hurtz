@@ -30,15 +30,15 @@
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
       <ul class="nav-links" id="nav-links">
         <li><a href="index.html"><span class="material-symbols-rounded" aria-hidden="true">home</span><span class="nav-label">Home</span></a></li>
-        <li><a href="beats.html"><span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span><span class="nav-label">Purchase Beats</span></a></li>
+        <li><a href="beats.html"><span class="material-symbols-rounded" aria-hidden="true">piano</span><span class="nav-label">Custom Beats</span></a></li>
         <li><a href="contact.html"><span class="material-symbols-rounded" aria-hidden="true">call</span><span class="nav-label">Contact Us</span></a></li>
         <li><a class="btn btn-primary" href="index.html#services"><span class="material-symbols-rounded" aria-hidden="true">event_available</span><span class="nav-label">Book a session</span></a></li>
       </ul>
     </nav>
   </header>
   <main id="main">
-    <section class="page-hero">
-      
+    <section class="page-hero has-image hero-cover-art">
+      <div class="hero-media"><img src="assets/img/cover-art-vinyl.webp" alt="Black vinyl record sliding out of its album sleeve, with the lyric insert beside it" width="750" height="750" fetchpriority="high"></div>
       <div class="container hero-inner">
         <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span class="material-symbols-rounded" aria-hidden="true">chevron_right</span><span>Cover arts</span></nav>
         <p class="eyebrow">Cover arts</p>
@@ -88,19 +88,13 @@
                 <span class="error-text">Choose a release type.</span>
               </div>
             </div>
-            <div class="field-row">
-              <div class="field">
-                <label for="release_date">Release date</label>
-                <input type="date" id="release_date" name="release_date" data-summary-field="Release date">
-              </div>
-              <div class="field">
-                <label for="refs">Reference images link</label>
-                <input type="url" id="refs" name="refs" placeholder="Pinterest board or Drive folder" data-summary-field="References">
-              </div>
+            <div class="field">
+              <label for="refs">Reference images link <span class="optional">(optional)</span></label>
+              <input type="url" id="refs" name="refs" placeholder="Pinterest board or Drive folder" data-summary-field="References">
             </div>
           </fieldset>
           <div class="field">
-            <label for="notes">Describe the artwork</label>
+            <label for="notes">Describe the artwork <span class="optional">(optional)</span></label>
             <textarea id="notes" name="notes" placeholder="Colours, mood, photos you want to use"></textarea>
           </div>
           <div>
@@ -151,7 +145,7 @@
         <div>
           <h4>Studio</h4>
           <ul>
-            <li><a href="beats.html">Purchase beats</a></li>
+            <li><a href="beats.html">Custom beats</a></li>
             <li><a href="contact.html">Contact us</a></li>
           </ul>
         </div>

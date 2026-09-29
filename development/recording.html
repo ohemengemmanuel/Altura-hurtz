@@ -30,21 +30,21 @@
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
       <ul class="nav-links" id="nav-links">
         <li><a href="index.html"><span class="material-symbols-rounded" aria-hidden="true">home</span><span class="nav-label">Home</span></a></li>
-        <li><a href="beats.html"><span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span><span class="nav-label">Purchase Beats</span></a></li>
+        <li><a href="beats.html"><span class="material-symbols-rounded" aria-hidden="true">piano</span><span class="nav-label">Custom Beats</span></a></li>
         <li><a href="contact.html"><span class="material-symbols-rounded" aria-hidden="true">call</span><span class="nav-label">Contact Us</span></a></li>
         <li><a class="btn btn-primary" href="index.html#services"><span class="material-symbols-rounded" aria-hidden="true">event_available</span><span class="nav-label">Book a session</span></a></li>
       </ul>
     </nav>
   </header>
   <main id="main">
-    <section class="page-hero has-image">
+    <section class="page-hero has-image hero-recording">
       <div class="hero-media"><img src="assets/img/recording-session.webp" alt="Artist in headphones recording at the booth microphone" width="1600" height="1200" fetchpriority="high"></div>
       <div class="container hero-inner">
         <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span class="material-symbols-rounded" aria-hidden="true">chevron_right</span><span>Recording only</span></nav>
         <p class="eyebrow">Recording only</p>
         <h1>Record your vocals and receive full WAV stems</h1>
         <p class="lede">Track in our treated vocal booth and take home every take as WAV stems. This does not include mixing and mastering.</p>
-        <div class="price-tags"><span class="price-tag"><span class="material-symbols-rounded" aria-hidden="true">schedule</span><span data-price="recordingPerHour">GH&#8373;100</span> per hour</span><span class="price-tag"><span class="material-symbols-rounded" aria-hidden="true">sell</span>Discounts from 3 hours</span><span class="price-tag"><span class="material-symbols-rounded" aria-hidden="true">folder_zip</span>Full WAV stems</span></div>
+        <div class="price-tags"><span class="price-tag"><span class="material-symbols-rounded" aria-hidden="true">schedule</span><span data-price="recordingPerHour">GH&#8373;100</span> per hour</span><span class="price-tag"><span class="material-symbols-rounded" aria-hidden="true">sell</span>Discounts from 2 hours</span><span class="price-tag"><span class="material-symbols-rounded" aria-hidden="true">folder_zip</span>Full WAV stems</span></div>
       </div>
     </section>
 
@@ -73,20 +73,9 @@
             </div>
           </fieldset>
           <fieldset>
-            <legend><span class="material-symbols-rounded" aria-hidden="true">queue_music</span>Track info</legend>
-            <div class="field">
-              <label for="tracks">Number of tracks <span class="req">*</span></label>
-              <div class="stepper">
-                <button type="button" data-step="-1" aria-label="Fewer"><span class="material-symbols-rounded" aria-hidden="true">remove</span></button>
-                <input type="number" id="tracks" name="tracks" value="1" min="1" inputmode="numeric" required>
-                <button type="button" data-step="1" aria-label="More"><span class="material-symbols-rounded" aria-hidden="true">add</span></button>
-              </div>
-              <span class="hint">How many songs you plan to record</span>
-              
-            </div>
-            <div class="track-titles" id="track-titles"></div>
-            <div class="field" data-file-or-link="Instrumentals">
-              <span class="label">Instrumental upload <span class="req">*</span></span>
+            <legend><span class="material-symbols-rounded" aria-hidden="true">upload_file</span>Instrumentals</legend>
+            <div class="field" data-file-or-link="Instrumentals" data-optional>
+              <span class="label">Instrumental upload <span class="optional">(optional)</span></span>
               <label class="dropzone" data-list="instrumental-list">
                 <span class="material-symbols-rounded" aria-hidden="true">upload_file</span>
                 <strong>Choose files or drop them here</strong>
@@ -94,9 +83,7 @@
                 <input type="file" name="instrumental" accept=".mp3,.wav" multiple>
               </label>
               <ul class="file-list" id="instrumental-list"></ul>
-              <label for="instrumental_link" class="hint">Or paste a link to your instrumentals (Google Drive, WeTransfer, Dropbox)</label>
-              <input type="url" id="instrumental_link" name="instrumental_link" placeholder="https://drive.google.com/...">
-              <span class="error-text">Add your instrumentals as MP3 or WAV files, or paste a link.</span>
+              <span class="error-text">Instrumentals must be MP3 or WAV files.</span>
             </div>
           </fieldset>
           <fieldset>
@@ -122,7 +109,7 @@
                 <input type="number" id="hours" name="hours" value="2" min="1" inputmode="numeric" required>
                 <button type="button" data-step="1" aria-label="More"><span class="material-symbols-rounded" aria-hidden="true">add</span></button>
               </div>
-              <span class="hint">Discounts from 3 hours</span>
+              <span class="hint">Discounts from 2 hours</span>
               <span class="line-price" id="hours-price" aria-live="polite"></span>
             </div>
 
@@ -130,14 +117,14 @@
           </fieldset>
           <fieldset>
             <legend><span class="material-symbols-rounded" aria-hidden="true">payments</span>Payment</legend>
-            <p class="fieldset-note">Choose how you would like to pay. We send payment details when we confirm your booking.</p>
+            <p class="fieldset-note">Choose how you would like to pay. We send payment details when we confirm your booking. All payments are <strong class="no-refund">NON-REFUNDABLE</strong>.</p>
             <div class="field">
               <div class="choice-grid" id="payment-options" role="radiogroup" aria-label="Payment method"></div>
               <span class="error-text">Choose a payment method.</span>
             </div>
           </fieldset>
           <div class="field">
-            <label for="notes">Anything we should know?</label>
+            <label for="notes">Anything we should know? <span class="optional">(optional)</span></label>
             <textarea id="notes" name="notes" placeholder="References, vibe, deadlines"></textarea>
           </div>
           <div class="field">
@@ -203,7 +190,7 @@
         <div>
           <h4>Studio</h4>
           <ul>
-            <li><a href="beats.html">Purchase beats</a></li>
+            <li><a href="beats.html">Custom beats</a></li>
             <li><a href="contact.html">Contact us</a></li>
           </ul>
         </div>

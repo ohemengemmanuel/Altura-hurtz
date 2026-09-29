@@ -30,7 +30,7 @@
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
       <ul class="nav-links" id="nav-links">
         <li><a href="index.html"><span class="material-symbols-rounded" aria-hidden="true">home</span><span class="nav-label">Home</span></a></li>
-        <li><a href="beats.html"><span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span><span class="nav-label">Purchase Beats</span></a></li>
+        <li><a href="beats.html"><span class="material-symbols-rounded" aria-hidden="true">piano</span><span class="nav-label">Custom Beats</span></a></li>
         <li><a href="contact.html"><span class="material-symbols-rounded" aria-hidden="true">call</span><span class="nav-label">Contact Us</span></a></li>
         <li><a class="btn btn-primary" href="index.html#services"><span class="material-symbols-rounded" aria-hidden="true">event_available</span><span class="nav-label">Book a session</span></a></li>
       </ul>
@@ -42,8 +42,8 @@
       <div class="container hero-inner">
         <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span class="material-symbols-rounded" aria-hidden="true">chevron_right</span><span>Mixing and mastering</span></nav>
         <p class="eyebrow">Mixing and mastering</p>
-        <h1>Send us your music project for mixing and mastering</h1>
-        <p class="lede">Upload your stems and we balance, polish and master your record so it holds up next to anything on the playlist.</p>
+        <h1>Upload your music for mixing and mastering</h1>
+        <p class="lede">Send us your project stems and we'll send it back to you mixed and mastered.</p>
         <div class="price-tags"><span class="price-tag"><span class="material-symbols-rounded" aria-hidden="true">album</span><span data-price="mixMasterPerTrack">GH&#8373;450</span> per track</span><span class="price-tag"><span class="material-symbols-rounded" aria-hidden="true">sell</span>Discounts from 2 tracks</span><span class="price-tag"><span class="material-symbols-rounded" aria-hidden="true">folder_zip</span>Stems, archived</span></div>
       </div>
     </section>
@@ -91,6 +91,7 @@
             <p class="fieldset-note">Send your project as stems in an archive: one ZIP per song with every track exported as a WAV file from the same start point.</p>
             <div class="field" data-file-or-link="Project stems">
               <span class="label">Stems archive <span class="req">*</span></span>
+              <span class="hint">Upload a file, paste a link, or both</span>
               <label class="dropzone" data-list="stems-list">
                 <span class="material-symbols-rounded" aria-hidden="true">upload_file</span>
                 <strong>Choose files or drop them here</strong>
@@ -98,21 +99,21 @@
                 <input type="file" name="stems" accept=".zip,.rar,.7z" multiple>
               </label>
               <ul class="file-list" id="stems-list"></ul>
-              <label for="stems_link" class="hint">Large project? Paste a link instead (Google Drive, WeTransfer, Dropbox)</label>
+              <label for="stems_link" class="hint">And/or paste a link (Google Drive, WeTransfer, Dropbox)</label>
               <input type="url" id="stems_link" name="stems_link" placeholder="https://drive.google.com/...">
-              <span class="error-text">Add your stems as a ZIP, RAR or 7Z archive, or paste a link.</span>
+              <span class="error-text">Upload your stems as a ZIP, RAR or 7Z archive, paste a working link, or both.</span>
             </div>
           </fieldset>
           <fieldset>
             <legend><span class="material-symbols-rounded" aria-hidden="true">payments</span>Payment</legend>
-            <p class="fieldset-note">Choose how you would like to pay. We send payment details when we confirm your booking.</p>
+            <p class="fieldset-note">Choose how you would like to pay. We send payment details when we confirm your booking. All payments are <strong class="no-refund">NON-REFUNDABLE</strong>.</p>
             <div class="field">
               <div class="choice-grid" id="payment-options" role="radiogroup" aria-label="Payment method"></div>
               <span class="error-text">Choose a payment method.</span>
             </div>
           </fieldset>
           <div class="field">
-            <label for="notes">Notes for the engineer</label>
+            <label for="notes">Notes for the engineer <span class="optional">(optional)</span></label>
             <textarea id="notes" name="notes" placeholder="Reference tracks, BPM, key, release date"></textarea>
           </div>
           <div>
@@ -174,7 +175,7 @@
         <div>
           <h4>Studio</h4>
           <ul>
-            <li><a href="beats.html">Purchase beats</a></li>
+            <li><a href="beats.html">Custom beats</a></li>
             <li><a href="contact.html">Contact us</a></li>
           </ul>
         </div>

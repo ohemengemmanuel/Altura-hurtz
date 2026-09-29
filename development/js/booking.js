@@ -52,7 +52,6 @@
     });
   });
   if (tracksInput) tracksInput.max = cfg.maxTracks;
-  if (hoursInput) hoursInput.max = cfg.maxSessionHours;
 
   /* Track titles, one field per track */
   function syncTitles() {
@@ -66,9 +65,8 @@
       const wrap = document.createElement("div");
       wrap.className = "field";
       wrap.innerHTML =
-        '<label for="' + id + '">Track ' + i + ' title <span class="req">*</span></label>' +
-        '<input type="text" id="' + id + '" name="' + id + '" required autocomplete="off" placeholder="Working title is fine">' +
-        '<span class="error-text">Add a title for track ' + i + '.</span>';
+        '<label for="' + id + '">Track ' + i + ' title <span class="optional">(optional)</span></label>' +
+        '<input type="text" id="' + id + '" name="' + id + '" autocomplete="off" placeholder="Working title is fine">';
       wrap.querySelector("input").value = kept[i - 1] || "";
       titlesBox.appendChild(wrap);
     }
@@ -98,12 +96,27 @@
     });
   }
 
+  /* Hours left before closing for the chosen start time */
+  function syncMaxHours() {
+    if (!hoursInput) return;
+    let max = cfg.maxSessionHours;
+    if (timeSelect && timeSelect.value && cfg.closingTime) {
+      const mins = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+      max = Math.min(max, Math.floor((mins(cfg.closingTime) - mins(timeSelect.value)) / 60));
+    }
+    hoursInput.max = Math.max(1, max);
+    if (Number(hoursInput.value) > hoursInput.max) hoursInput.value = hoursInput.max;
+  }
+  if (timeSelect) timeSelect.addEventListener("change", () => { syncMaxHours(); calc(); });
+
   /* Payment methods */
   const payBox = $("#payment-options");
   if (payBox) {
     payBox.innerHTML = cfg.paymentMethods.map((p, i) =>
       '<div class="choice"><input type="radio" name="payment_method" id="pay-' + p.id + '" value="' + p.label + '"' + (i === 0 ? " required" : "") + '>' +
-      '<label for="pay-' + p.id + '"><span class="material-symbols-rounded" aria-hidden="true">' + p.icon + '</span><span>' + p.label + '<small>' + p.note + '</small></span></label></div>'
+      '<label for="pay-' + p.id + '">' +
+      (p.logo ? '<img class="pay-logo" src="' + p.logo + '" alt="" width="32" height="32">' : '<span class="material-symbols-rounded" aria-hidden="true">' + p.icon + '</span>') +
+      '<span>' + p.label + '<small>' + p.note + '</small></span></label></div>'
     ).join("");
   }
 
@@ -184,6 +197,7 @@
   if (hoursInput) hoursInput.addEventListener("blur", () => { hoursInput.value = clamp(hoursInput); calc(); });
 
   syncTitles();
+  syncMaxHours();
   calc();
 
   /* Validation */
@@ -213,14 +227,27 @@
     form.querySelectorAll("[data-file-or-link]").forEach((group) => {
       const file = group.querySelector('input[type="file"]');
       const link = group.querySelector('input[type="url"]');
+      // A file, a link, or both. Links pasted without https:// (drive.google.com/..., we.tl/...) get it added.
+      if (link && link.value.trim() && !/^[a-z]+:\/\//i.test(link.value.trim())) link.value = "https://" + link.value.trim();
       const hasFile = file && file.files.length > 0;
       const hasLink = link && link.value.trim().length > 0;
-      let bad = !hasFile && !hasLink;
+      let bad = !hasFile && !hasLink && !("optional" in group.dataset);
       if (hasFile && file.dataset.allowed) {
         const ok = file.dataset.allowed.split(",");
         bad = bad || Array.from(file.files).some((f) => !ok.some((ext) => f.name.toLowerCase().endsWith(ext)));
       }
-      if (hasLink && !/^https?:\/\/\S+$/i.test(link.value.trim())) bad = true;
+      // Files over the upload limit: ask for a link instead. Only applies when files are uploaded to Supabase.
+      const errorText = group.querySelector(".error-text");
+      if (errorText && !errorText.dataset.text) errorText.dataset.text = errorText.textContent;
+      const limit = (cfg.maxUploadMB || 50) * 1048576;
+      const tooBig = sb && hasFile && Array.from(file.files).some((f) => f.size > limit);
+      if (errorText) {
+        errorText.textContent = tooBig
+          ? "Files over " + (cfg.maxUploadMB || 50) + " MB are too large to upload here. Remove them and share a Google Drive or WeTransfer link instead."
+          : errorText.dataset.text;
+      }
+      bad = bad || tooBig;
+      if (hasLink && !/^https?:\/\/[^\s/]+\.[^\s]+$/i.test(link.value.trim())) bad = true;
       mark(group, bad);
     });
 
@@ -252,7 +279,7 @@
     if (v("session_date")) out.push("Session: " + v("session_date") + " at " + v("session_time") + (hoursInput ? ", " + clamp(hoursInput) + " hours" : ""));
     if (tracksInput) {
       out.push("Tracks: " + clamp(tracksInput));
-      form.querySelectorAll('#track-titles input').forEach((el, i) => out.push("  " + (i + 1) + ". " + el.value.trim()));
+      form.querySelectorAll('#track-titles input').forEach((el, i) => { if (el.value.trim()) out.push("  " + (i + 1) + ". " + el.value.trim()); });
     }
     form.querySelectorAll("[data-file-or-link]").forEach((group) => {
       const label = group.dataset.fileOrLink;
@@ -277,6 +304,89 @@
     return out.join("\n");
   }
 
+  /* Supabase: bookings table and booking-files bucket (see supabase/schema.sql).
+     The client library is only downloaded once someone starts filling in the form. */
+  const sb = cfg.supabase && cfg.supabase.url && cfg.supabase.anonKey ? cfg.supabase : null;
+  let clientPromise = null;
+  function supabaseClient() {
+    if (!clientPromise) {
+      clientPromise = import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm")
+        .then(({ createClient }) => createClient(sb.url, sb.anonKey, { auth: { persistSession: false, autoRefreshToken: false } }))
+        .catch((err) => { clientPromise = null; throw err; });
+    }
+    return clientPromise;
+  }
+  if (sb) form.addEventListener("focusin", () => supabaseClient().catch(() => {}), { once: true });
+
+  function safeName(name) {
+    return name.normalize("NFKD").replace(/[^\w.-]+/g, "_").replace(/_+/g, "_").slice(-120);
+  }
+
+  async function saveToSupabase(ref, summary, progress) {
+    const client = await supabaseClient();
+    const v = (name) => { const el = form.elements[name]; return el && el.value ? el.value.trim() : ""; };
+
+    // The booking is saved first and lists its files. The database only accepts uploads
+    // that a booking made in the last hour lists (see supabase/schema.sql).
+    const uploads = [];
+    form.querySelectorAll('input[type="file"]').forEach((input) => {
+      Array.from(input.files).forEach((file) => uploads.push({ field: input.name, file }));
+    });
+    uploads.forEach((u, i) => (u.path = ref + "/" + u.field + "/" + (i + 1) + "-" + safeName(u.file.name)));
+    const files = uploads.map((u) => ({ field: u.field, name: u.file.name, path: u.path, size: u.file.size }));
+
+    const details = {};
+    form.querySelectorAll("[data-summary-field]").forEach((el) => {
+      if (el.value && el.value.trim()) details[el.dataset.summaryField] = el.value.trim();
+    });
+    form.querySelectorAll("[data-file-or-link]").forEach((group) => {
+      const link = group.querySelector('input[type="url"]');
+      if (link && link.value.trim()) details[group.dataset.fileOrLink + " link"] = link.value.trim();
+    });
+    const pay = form.querySelector('input[name="payment_method"]:checked');
+
+    progress("Sending");
+    const { error } = await client.from("bookings").insert({
+      reference: ref,
+      service: serviceName,
+      kind: noun === "message" ? "message" : noun === "request" ? "request" : "booking",
+      artist_name: v("artist_name"),
+      email: v("email"),
+      phone: v("phone"),
+      session_date: v("session_date") || null,
+      session_time: v("session_time") || null,
+      hours: hoursInput ? clamp(hoursInput) : null,
+      tracks: tracksInput ? clamp(tracksInput) : null,
+      track_titles: Array.from(form.querySelectorAll("#track-titles input")).map((el) => el.value.trim()),
+      payment_method: pay ? pay.value : null,
+      estimated_total: mode === "quote" ? null : Math.round(calc().total),
+      notes: v("notes") || null,
+      details,
+      files,
+      summary
+    });
+    if (error) throw error;
+
+    // Returns the names of any files that did not upload. The booking itself is already saved.
+    const failed = [];
+    for (let i = 0; i < uploads.length; i++) {
+      progress("Uploading " + (i + 1) + " of " + uploads.length);
+      const { error: upErr } = await client.storage.from("booking-files")
+        .upload(uploads[i].path, uploads[i].file, { contentType: uploads[i].file.type || "application/octet-stream", upsert: false });
+      if (upErr) { console.error("Upload failed", uploads[i].file.name, upErr); failed.push(uploads[i].file.name); }
+    }
+    return failed;
+  }
+
+  async function postToEndpoint(ref, summary) {
+    const data = new FormData(form);
+    data.append("reference", ref);
+    data.append("service", serviceName);
+    data.append("summary", summary);
+    const res = await fetch(cfg.formEndpoint, { method: "POST", body: data, headers: { Accept: "application/json" } });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+  }
+
   /* Submit */
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -285,30 +395,29 @@
     const ref = reference();
     const summary = buildSummary(ref);
     const submitBtn = form.querySelector('button[type="submit"]');
+    const label = submitBtn.querySelector(".label");
 
-    if (cfg.formEndpoint) {
-      submitBtn.disabled = true;
-      submitBtn.querySelector(".label").textContent = "Sending";
-      const data = new FormData(form);
-      data.append("reference", ref);
-      data.append("service", serviceName);
-      data.append("summary", summary);
-      try {
-        const res = await fetch(cfg.formEndpoint, { method: "POST", body: data, headers: { Accept: "application/json" } });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        showConfirmation(ref, summary, true);
-      } catch (err) {
-        showConfirmation(ref, summary, false, true);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.querySelector(".label").textContent = submitBtn.dataset.label;
-      }
-    } else {
+    if (!sb && !cfg.formEndpoint) {
       showConfirmation(ref, summary, false);
+      return;
+    }
+    submitBtn.disabled = true;
+    label.textContent = "Sending";
+    try {
+      let failedFiles = [];
+      if (sb) failedFiles = await saveToSupabase(ref, summary, (text) => (label.textContent = text));
+      else await postToEndpoint(ref, summary);
+      showConfirmation(ref, summary, true, false, failedFiles);
+    } catch (err) {
+      console.error("Booking could not be sent", err);
+      showConfirmation(ref, summary, false, true);
+    } finally {
+      submitBtn.disabled = false;
+      label.textContent = submitBtn.dataset.label;
     }
   });
 
-  function showConfirmation(ref, summary, sent, failed) {
+  function showConfirmation(ref, summary, sent, failed, failedFiles) {
     const heading = confirmation.querySelector("[data-heading]");
     const intro = confirmation.querySelector("[data-intro]");
     const pre = confirmation.querySelector("pre");
@@ -323,6 +432,12 @@
         : "Thanks. We will get back to you on " + form.elements.phone.value.trim() + " or by email.";
       waBtn.hidden = true;
       mailBtn.hidden = true;
+      if (failedFiles && failedFiles.length) {
+        // Booking saved but some audio did not upload: offer WhatsApp so the files can be sent there.
+        intro.textContent += " Some files did not upload (" + failedFiles.join(", ") + "). Please send them to us on WhatsApp or as a Google Drive or WeTransfer link, quoting reference " + ref + ".";
+        waBtn.hidden = !cfg.contact.whatsapp;
+        waBtn.href = "https://wa.me/" + cfg.contact.whatsapp + "?text=" + encodeURIComponent("Files for booking " + ref);
+      }
     } else {
       heading.textContent = "Your " + noun + " is ready to send. Reference " + ref;
       intro.textContent = failed
