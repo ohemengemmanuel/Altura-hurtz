@@ -427,15 +427,25 @@
     pre.textContent = summary;
     if (sent) {
       heading.textContent = "Request sent. Reference " + ref;
-      intro.textContent = noun === "booking"
-        ? "We have your request and will contact you on " + form.elements.phone.value.trim() + " to confirm your booking and payment details."
-        : "Thanks. We will get back to you on " + form.elements.phone.value.trim() + " or by email.";
-      waBtn.hidden = true;
+      // Built from text nodes so nothing the client typed is treated as HTML.
+      const clientPhone = form.elements.phone.value.trim();
+      const clientEmail = form.elements.email.value.trim();
+      const studioPhone = cfg.contact.phone;
+      intro.textContent = (noun === "booking"
+        ? "We have your request and will contact you on " + clientPhone + " or " + clientEmail + " to confirm your booking and payment details."
+        : "Thanks. We will get back to you on " + clientPhone + " or " + clientEmail + ".");
+      if (studioPhone) {
+        const call = document.createElement("a");
+        call.href = "tel:" + studioPhone.replace(/[^\d+]/g, "");
+        call.textContent = studioPhone;
+        intro.append(" If you don't hear from us within 24 hours, call or WhatsApp us on ", call, ".");
+      }
+      waBtn.hidden = !cfg.contact.whatsapp;
+      waBtn.href = "https://wa.me/" + cfg.contact.whatsapp + "?text=" + encodeURIComponent("Hi, following up on my " + (noun === "booking" ? "booking" : noun) + " " + ref);
       mailBtn.hidden = true;
       if (failedFiles && failedFiles.length) {
         // Booking saved but some audio did not upload: offer WhatsApp so the files can be sent there.
-        intro.textContent += " Some files did not upload (" + failedFiles.join(", ") + "). Please send them to us on WhatsApp or as a Google Drive or WeTransfer link, quoting reference " + ref + ".";
-        waBtn.hidden = !cfg.contact.whatsapp;
+        intro.append(" Some files did not upload (" + failedFiles.join(", ") + "). Please send them to us on WhatsApp or as a Google Drive or WeTransfer link, quoting reference " + ref + ".");
         waBtn.href = "https://wa.me/" + cfg.contact.whatsapp + "?text=" + encodeURIComponent("Files for booking " + ref);
       }
     } else {

@@ -102,6 +102,7 @@ async function enter(session) {
   }
   show("dash-view");
   await load();
+  openFromLink();
   startLive();
 }
 
@@ -477,5 +478,14 @@ dialog.addEventListener("click", async (e) => {
   }
 });
 dialog.addEventListener("close", () => { openId = null; });
+
+// Links in the alert emails end in #<reference>, for example studio.html#AH-260929-K3PQ.
+function openFromLink() {
+  const ref = decodeURIComponent(location.hash.slice(1));
+  if (!ref || ref.includes("type=recovery")) return;
+  const b = bookings.find((x) => x.reference === ref);
+  if (b) openBooking(b.id);
+}
+window.addEventListener("hashchange", () => { if (bookings.length) openFromLink(); });
 
 start();

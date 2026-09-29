@@ -31,8 +31,7 @@ Booking forms save to a Supabase database, and the studio manages them at `/stud
 5. Authentication > URL Configuration: set Site URL to the live site and add `https://<your-site>/studio.html` to Redirect URLs, so password reset links work.
 6. Project Settings > API: copy the Project URL and the publishable key into `supabase` in `development/js/config.js`.
 
-7. Email alerts for new bookings: sign up at https://resend.com, create an API key, and save it in Supabase > Integrations > Vault as a secret named `resend_api_key`. Then run `supabase/email-alerts.sql` in the SQL Editor. Once the site is live, set the dashboard link in the alert emails:
-   `update public.notification_settings set dashboard_url = 'https://<your-site>/studio.html';`
+7. Email alerts for new bookings: sign up at https://resend.com, create an API key, and save it in Supabase > Integrations > Vault as a secret named `resend_api_key`. Then run `supabase/email-alerts.sql` in the SQL Editor. Each alert email starts with a link that opens that booking on the dashboard; the address is set in that file (`dashboard_url`).
 
 Until step 6 is done, clients get a booking summary to send on WhatsApp or email instead. The same happens if a submission fails.
 

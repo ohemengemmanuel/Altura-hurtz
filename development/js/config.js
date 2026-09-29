@@ -8,9 +8,9 @@ window.AH_CONFIG = {
   currency: "GH₵",
 
   contact: {
-    phone: "+233 00 000 0000",        // TODO: studio phone number
-    whatsapp: "233000000000",         // TODO: WhatsApp number, digits only with country code
-    email: "bookings@alturahertz.com", // TODO: booking email address
+    phone: "+233 50 174 4564",
+    whatsapp: "233501744564",         // digits only, with country code
+    email: "ohemengemmanuel104@gmail.com", // TODO: switch to a studio address when there is one
     location: "Accra, Ghana",         // TODO: studio address or area
     hours: "Monday to Sunday, 11:00 to 23:00", // TODO: opening hours
     // Social profiles for the footer icons. Paste the full link, for example

@@ -18,14 +18,14 @@ create extension if not exists pg_net;
 create table if not exists public.notification_settings (
   id            boolean primary key default true check (id),
   notify_email  text not null,
-  dashboard_url text,  -- for example https://alturahertz.netlify.app/studio.html, added once the site is live
+  dashboard_url text,  -- the studio dashboard page; alert emails link to it
   from_email    text not null default 'Altura Hertz Bookings <onboarding@resend.dev>'
 );
 alter table public.notification_settings enable row level security;
 
-insert into public.notification_settings (notify_email)
-values ('ohemengemmanuel104@gmail.com')
-on conflict (id) do update set notify_email = excluded.notify_email;
+insert into public.notification_settings (notify_email, dashboard_url)
+values ('ohemengemmanuel104@gmail.com', 'https://altura-hertz.netlify.app/studio.html')
+on conflict (id) do update set notify_email = excluded.notify_email, dashboard_url = excluded.dashboard_url;
 
 create or replace function public.notify_new_booking()
 returns trigger
@@ -50,12 +50,13 @@ begin
   subject := 'New ' || what || ': ' || new.service || ', ' || new.artist_name
     || coalesce(', ' || to_char(new.session_date, 'Dy DD Mon') || coalesce(' ' || to_char(new.session_time, 'HH24:MI'), ''), '');
 
-  body := coalesce(new.summary, 'Reference: ' || new.reference)
+  -- The link opens this booking straight away (studio.js reads the #reference).
+  body := coalesce('Open this booking on the studio dashboard:' || E'\n' || s.dashboard_url || '#' || new.reference || E'\n\n', '')
+    || coalesce(new.summary, 'Reference: ' || new.reference)
     || E'\n\n'
     || case when jsonb_array_length(new.files) > 0
             then jsonb_array_length(new.files) || ' file(s) attached. Download them from the studio dashboard.' || E'\n'
             else '' end
-    || coalesce('Open the studio dashboard: ' || s.dashboard_url || E'\n', '')
     || E'\nReply to this email to answer the client directly.';
 
   payload := jsonb_build_object(
