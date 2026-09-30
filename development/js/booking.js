@@ -96,18 +96,81 @@
     });
   }
 
-  /* Hours left before closing for the chosen start time */
+  // Sessions already taken on the chosen date, in minutes: [{ start, end }]
+  let taken = [];
+  const toMins = (t) => { const [h, m] = String(t).slice(0, 5).split(":").map(Number); return h * 60 + m; };
+
+  /* Hours left before closing, or before the next booked session, for the chosen start time */
   function syncMaxHours() {
     if (!hoursInput) return;
     let max = cfg.maxSessionHours;
     if (timeSelect && timeSelect.value && cfg.closingTime) {
-      const mins = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
-      max = Math.min(max, Math.floor((mins(cfg.closingTime) - mins(timeSelect.value)) / 60));
+      max = Math.min(max, Math.floor((toMins(cfg.closingTime) - toMins(timeSelect.value)) / 60));
+    }
+    if (timeSelect && timeSelect.value && taken.length) {
+      const start = toMins(timeSelect.value);
+      const next = taken.filter((t) => t.start >= start).reduce((m, t) => Math.min(m, t.start), Infinity);
+      if (next !== Infinity) max = Math.min(max, Math.floor((next - start) / 60));
     }
     hoursInput.max = Math.max(1, max);
     if (Number(hoursInput.value) > hoursInput.max) hoursInput.value = hoursInput.max;
   }
-  if (timeSelect) timeSelect.addEventListener("change", () => { syncMaxHours(); calc(); });
+  if (timeSelect) timeSelect.addEventListener("change", () => {
+    const errorText = timeSelect.closest(".field").querySelector(".error-text");
+    if (errorText && errorText.dataset.text) errorText.textContent = errorText.dataset.text;
+    syncMaxHours();
+    calc();
+  });
+
+  /* Booked times: paid sessions, and confirmed ones still inside their payment hold, are greyed out.
+     Comes from taken_slots in Supabase, which shares times only, never names. */
+  let slotNote = null;
+  async function loadTakenSlots() {
+    if (!dateInput || !timeSelect) return;
+    const day = dateInput.value;
+    taken = [];
+    if (sb && day) {
+      try {
+        const client = await supabaseClient();
+        const { data, error } = await client.rpc("taken_slots", { from_date: day, to_date: day });
+        if (error) throw error;
+        if (dateInput.value !== day) return; // the date changed while this was loading
+        taken = (data || []).map((s) => ({ start: toMins(s.session_time), end: toMins(s.session_time) + (s.hours || 1) * 60 }));
+      } catch (err) {
+        console.error("Could not load booked times", err);
+      }
+    }
+    Array.from(timeSelect.options).forEach((o) => {
+      if (!o.value) return;
+      const start = toMins(o.value);
+      const busy = taken.some((t) => start < t.end && t.start < start + 60);
+      o.disabled = busy;
+      o.textContent = o.value + (busy ? " (booked)" : "");
+    });
+    if (timeSelect.selectedOptions[0] && timeSelect.selectedOptions[0].disabled) timeSelect.value = "";
+    if (!slotNote) {
+      slotNote = document.createElement("span");
+      slotNote.className = "hint";
+      const field = timeSelect.closest(".field");
+      field.insertBefore(slotNote, field.querySelector(".error-text"));
+    }
+    slotNote.textContent = taken.length ? "Greyed-out times are already booked." : "";
+    syncMaxHours();
+    calc();
+  }
+  if (dateInput && timeSelect) dateInput.addEventListener("change", loadTakenSlots);
+
+  // Someone else booked the same time a moment earlier: say so on the time field and refresh.
+  function showSlotTaken() {
+    const field = timeSelect.closest(".field");
+    const errorText = field.querySelector(".error-text");
+    if (!errorText.dataset.text) errorText.dataset.text = errorText.textContent;
+    errorText.textContent = "Sorry, that time was just booked by someone else. Please pick another time.";
+    field.classList.add("has-error");
+    loadTakenSlots();
+    field.scrollIntoView({ behavior: "smooth", block: "center" });
+    timeSelect.focus({ preventScroll: true });
+  }
 
   /* Payment methods */
   const payBox = $("#payment-options");
@@ -412,6 +475,7 @@
       showConfirmation(ref, summary, true, false, failedFiles);
     } catch (err) {
       console.error("Booking could not be sent", err);
+      if (timeSelect && String(err && err.message).includes("SLOT_TAKEN")) { showSlotTaken(); return; }
       showConfirmation(ref, summary, false, true);
     } finally {
       submitBtn.disabled = false;

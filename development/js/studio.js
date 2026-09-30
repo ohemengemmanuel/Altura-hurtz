@@ -195,6 +195,8 @@ function startLive() {
         }
       }
       render();
+      // Keep the open booking current (for example "Payment details emailed" appearing).
+      if (payload.new && payload.new.id === openId && !confirmDialog.open) refreshOpen();
     })
     .subscribe((status) => $("live").classList.toggle("is-on", status === "SUBSCRIBED"));
 }
@@ -219,7 +221,7 @@ function matches(b) {
   }
   if (filter.q) {
     const q = filter.q.toLowerCase();
-    const hay = [b.artist_name, b.phone, b.email, b.reference].join(" ").toLowerCase();
+    const hay = [b.artist_name, b.phone, b.email, b.reference, b.payment_ref].join(" ").toLowerCase();
     const digits = q.replace(/\D/g, "");
     const phoneHit = digits.length >= 3 && String(b.phone).replace(/\D/g, "").includes(digits);
     if (!hay.includes(q) && !phoneHit) return false;
@@ -250,7 +252,7 @@ function renderStats() {
   $("stat-confirmed").textContent = bookings.filter((b) => b.status === "confirmed").length;
   $("stat-month").textContent = money(bookings
     .filter((b) => (b.status === "paid" || b.status === "completed") && String(b.paid_at).slice(0, 7) === month)
-    .reduce((sum, b) => sum + (Number(b.estimated_total) || 0), 0));
+    .reduce((sum, b) => sum + (Number(amountOf(b)) || 0), 0));
   document.querySelectorAll(".stat[data-stat]").forEach((el) => {
     const on = el.dataset.stat === "upcoming" ? filter.upcoming : !filter.upcoming && filter.status === el.dataset.stat;
     el.classList.toggle("is-active", on);
@@ -259,6 +261,38 @@ function renderStats() {
 
 function pill(status) {
   return '<span class="status-pill" data-status="' + status + '">' + esc(statusLabel(status)) + "</span>";
+}
+
+// What the client is asked to pay: the amount set when confirming, otherwise the website estimate.
+const amountOf = (b) => (b.amount_due != null ? b.amount_due : b.estimated_total);
+const fmtStamp = (ts) => new Date(ts).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const fmtClock = (ts) => new Date(ts).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
+// A confirmed booking holds its slot until hold_expires_at (3 hours, set by the database).
+function holdState(b) {
+  if (b.status !== "confirmed" || !b.hold_expires_at) return null;
+  return { active: new Date(b.hold_expires_at) > new Date(), until: b.hold_expires_at };
+}
+function holdBadge(b) {
+  const h = holdState(b);
+  if (!h) return "";
+  return h.active
+    ? '<span class="hold-badge">Held until ' + esc(fmtClock(h.until)) + "</span>"
+    : '<span class="hold-badge is-expired">Hold expired</span>';
+}
+
+// Other bookings that already have this slot: paid, completed, or confirmed and still held.
+function slotConflicts(b) {
+  if (!b.session_date || !b.session_time) return [];
+  const mins = (x) => { const [h, m] = hhmm(x.session_time).split(":").map(Number); return h * 60 + m; };
+  const start = mins(b), end = start + (b.hours || 1) * 60;
+  return bookings.filter((o) => {
+    if (o.id === b.id || o.session_date !== b.session_date || !o.session_time) return false;
+    const h = holdState(o);
+    if (!(o.status === "paid" || o.status === "completed" || (h && h.active))) return false;
+    const s = mins(o), e = s + (o.hours || 1) * 60;
+    return s < end && start < e;
+  });
 }
 
 function sessionText(b) {
@@ -283,7 +317,7 @@ function renderList(rows) {
         (extra ? '<span class="muted">' + esc(extra) + "</span>" : "") + "</span>" +
       '<span class="booking-meta">' + (files ? '<span class="material-symbols-rounded" aria-hidden="true" title="' + files + ' files">attach_file</span>' : "") +
         '<span class="booking-total">' + (b.estimated_total != null ? money(b.estimated_total) : "Quote") + "</span></span>" +
-      '<span class="booking-state">' + pill(b.status) + '<span class="muted booking-ago" title="' + esc(new Date(b.created_at).toLocaleString("en-GB")) + '">' + fmtAgo(b.created_at) + "</span></span>" +
+      '<span class="booking-state">' + pill(b.status) + holdBadge(b) + '<span class="muted booking-ago" title="' + esc(new Date(b.created_at).toLocaleString("en-GB")) + '">' + fmtAgo(b.created_at) + "</span></span>" +
       "</button>";
   }).join("");
 }
@@ -314,7 +348,7 @@ function renderSchedule(rows) {
         '<span class="schedule-time">' + esc(hhmm(b.session_time)) + (b.hours ? "–" + esc(endTime(b.session_time, b.hours)) : "") + "</span>" +
         '<span class="booking-who"><strong>' + esc(b.artist_name) + '</strong><span class="muted">' + esc(b.service) + "</span></span>" +
         (clash.has(b.id) ? '<span class="clash-tag"><span class="material-symbols-rounded" aria-hidden="true">warning</span>Overlaps</span>' : "") +
-        pill(b.status) + "</button>"
+        holdBadge(b) + pill(b.status) + "</button>"
       ).join("") + "</section>";
   }).join("");
 }
@@ -373,6 +407,24 @@ function row(label, value) {
   return value ? "<div><dt>" + esc(label) + "</dt><dd>" + value + "</dd></div>" : "";
 }
 
+function holdRow(b) {
+  const h = holdState(b);
+  if (!h) return "";
+  return h.active
+    ? "Held until " + esc(fmtStamp(h.until))
+    : '<span class="hold-expired">Hold expired ' + esc(fmtStamp(h.until)) + "</span>. The slot is free on the website again.";
+}
+
+// The automatic email for the current status: sent, on its way, or failed.
+function clientEmailRow(b) {
+  const which = { confirmed: ["confirmed_email_at", "Payment details"], paid: ["paid_email_at", "Payment received"], cancelled: ["cancelled_email_at", "Cancellation"] }[b.status];
+  if (!which) return "";
+  const sentAt = b[which[0]];
+  if (sentAt) return esc(which[1]) + " email sent " + esc(fmtStamp(sentAt));
+  if ((b.client_email_attempts || 0) >= 3) return '<span class="hold-expired">' + esc(which[1]) + " email could not be sent.</span> Contact the client on WhatsApp.";
+  return esc(which[1]) + " email sending…";
+}
+
 async function openBooking(id) {
   const b = bookings.find((x) => x.id === id);
   if (!b) return;
@@ -409,6 +461,10 @@ async function openBooking(id) {
         details +
         row("Payment method", esc(b.payment_method)) +
         row("Estimated total", b.estimated_total != null ? '<span class="detail-money">' + money(b.estimated_total) + "</span>" : "") +
+        row("Amount due", b.amount_due != null ? '<span class="detail-money">' + money(b.amount_due) + "</span>" : "") +
+        row("Slot hold", holdRow(b)) +
+        row("Payment reference", esc(b.payment_ref)) +
+        row("Client email", clientEmailRow(b)) +
       "</dl></div>" +
 
       (b.notes ? '<div class="dialog-section"><h3>Client notes</h3><p class="client-notes">' + esc(b.notes) + "</p></div>" : "") +
@@ -459,9 +515,11 @@ dialog.addEventListener("click", async (e) => {
   const statusBtn = e.target.closest("[data-set-status]");
   if (statusBtn && openId) {
     const status = statusBtn.dataset.setStatus;
-    if (await save(openId, { status }, "Marked " + statusLabel(status).toLowerCase())) {
-      dialog.querySelectorAll("[data-set-status]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.setStatus === status)));
-    }
+    const b = bookings.find((x) => x.id === openId);
+    if (!b || b.status === status) return;
+    // Confirmed, Paid and Cancelled email the client, so they ask first.
+    if (status === "confirmed" || status === "paid" || status === "cancelled") { askStatus(b, status); return; }
+    if (await save(openId, { status }, "Marked " + statusLabel(status).toLowerCase())) refreshOpen();
     return;
   }
 
@@ -483,6 +541,97 @@ dialog.addEventListener("click", async (e) => {
   }
 });
 dialog.addEventListener("close", () => { openId = null; });
+
+// Re-draw the open booking without losing notes that haven't been saved yet.
+function refreshOpen() {
+  if (!openId || !dialog.open) return;
+  const notes = $("studio-notes");
+  const draft = notes ? notes.value : null;
+  const focused = notes && document.activeElement === notes;
+  openBooking(openId).then(() => {
+    const n = $("studio-notes");
+    if (n && draft !== null) { n.value = draft; if (focused) n.focus(); }
+  });
+}
+
+/* Status confirmations */
+const confirmDialog = $("confirm-dialog");
+
+function askStatus(b, status) {
+  const first = b.artist_name.split(" ")[0];
+  const amount = amountOf(b);
+  const holdHours = cfg.holdHours || 3;
+  const holdUntil = new Date(Date.now() + holdHours * 3600000);
+  const conflicts = status === "confirmed" ? slotConflicts(b) : [];
+  const summary = '<p class="confirm-who"><strong>' + esc(b.artist_name) + "</strong> · " + esc(b.service) +
+    (b.session_date ? "<br>" + esc(sessionText(b)) : "") + '<br><span class="muted">' + esc(b.reference) + "</span></p>";
+
+  let title, body, action, danger = false;
+  if (status === "confirmed") {
+    title = "Confirm this booking?";
+    body = summary +
+      '<div class="field"><label for="confirm-amount">Amount due (' + esc(cur) + ')</label>' +
+      '<input type="number" id="confirm-amount" min="1" step="1" inputmode="numeric" required value="' + (amount != null ? Math.round(amount) : "") + '">' +
+      '<span class="hint">' + (b.estimated_total != null ? "Website estimate: " + money(b.estimated_total) + ". Change it if the price is different." : "Set the price for this request.") + "</span>" +
+      '<span class="error-text">Enter the amount the client should pay.</span></div>' +
+      (conflicts.length ? '<p class="confirm-warn"><span class="material-symbols-rounded" aria-hidden="true">warning</span>This overlaps ' +
+        conflicts.map((o) => esc(o.artist_name) + " (" + esc(statusLabel(o.status).toLowerCase()) + ", " + esc(sessionText(o)) + ")").join(", ") + ".</p>" : "") +
+      '<p class="confirm-note">' + esc(first) + " will be emailed the amount and payment details" +
+      (b.session_date ? ", and this slot is held for " + holdHours + " hours, until <strong>" + esc(fmtClock(holdUntil)) + "</strong>. After that it opens up again on the website unless you mark it paid." : ".") + "</p>";
+    action = "Confirm and email client";
+  } else if (status === "paid") {
+    title = "Mark as paid?";
+    body = summary +
+      '<p class="confirm-note">Check the payment has arrived first: <strong>' + (amount != null ? esc(money(amount)) : "the agreed amount") + "</strong>, with reference <strong>" + esc(b.reference) + "</strong> or from " + esc(b.phone) + ".</p>" +
+      '<div class="field"><label for="confirm-ref">MoMo transaction ID or payment reference <span class="optional">(optional)</span></label>' +
+      '<input type="text" id="confirm-ref" maxlength="100" autocomplete="off" value="' + esc(b.payment_ref || "") + '" placeholder="From the payment message">' +
+      '<span class="hint">Saved on the booking so you can search for it later.</span></div>' +
+      '<p class="confirm-note">' + esc(first) + " gets a “payment received” email" + (b.session_date ? " and this slot is blocked on the website." : ".") + "</p>";
+    action = "Yes, mark as paid";
+  } else {
+    title = "Cancel this booking?";
+    body = summary +
+      '<label class="check"><input type="checkbox" id="confirm-email" checked><span>Email ' + esc(first) + " that it's cancelled</span></label>" +
+      (b.session_date ? '<p class="confirm-note">The slot becomes free on the website.</p>' : "");
+    action = "Cancel booking";
+    danger = true;
+  }
+
+  confirmDialog.innerHTML =
+    '<form class="confirm-form" novalidate>' +
+      '<h2 id="confirm-title">' + esc(title) + "</h2>" + body +
+      '<div class="confirm-actions">' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-back>Back</button>' +
+        '<button type="submit" class="btn btn-sm ' + (danger ? "btn-danger" : "btn-primary") + '"><span class="label">' + esc(action) + "</span></button>" +
+      "</div>" +
+    "</form>";
+  confirmDialog.showModal();
+
+  const form = confirmDialog.querySelector("form");
+  confirmDialog.querySelector("[data-back]").addEventListener("click", () => confirmDialog.close());
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const changes = { status };
+    if (status === "confirmed") {
+      const input = $("confirm-amount");
+      const value = Number(input.value);
+      if (!(value > 0)) { input.closest(".field").classList.add("has-error"); input.focus(); return; }
+      changes.amount_due = value;
+    } else if (status === "paid") {
+      changes.payment_ref = $("confirm-ref").value.trim() || null;
+    } else if (!$("confirm-email").checked) {
+      changes.cancelled_email_at = new Date().toISOString(); // tells the database not to email the client
+    }
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    const ok = await save(b.id, changes, status === "confirmed" ? "Confirmed. Payment details are on their way to " + first
+      : status === "paid" ? "Marked paid. " + first + " is being emailed"
+      : "Cancelled" + (changes.cancelled_email_at ? "" : ". " + first + " is being emailed"));
+    btn.disabled = false;
+    if (ok) { confirmDialog.close(); refreshOpen(); }
+  });
+}
+confirmDialog.addEventListener("click", (e) => { if (e.target === confirmDialog) confirmDialog.close(); });
 
 // Links in the alert emails end in #<reference>, for example studio.html#AH-260929-K3PQ.
 function openFromLink() {

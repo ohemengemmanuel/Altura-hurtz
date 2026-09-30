@@ -1,5 +1,6 @@
 // Supabase Edge Function "booking-alert": emails the studio about new bookings with the
-// client's files attached, and deletes those files from storage 14 days later.
+// client's files attached, emails clients when the studio confirms, marks paid or cancels
+// (see supabase/client-emails.sql), and deletes uploaded files from storage 14 days later.
 //
 // It is woken up when a booking is saved, by the website once uploads finish, and every
 // 5 minutes by a timer (see supabase/email-alerts.sql). Each run handles everything that is
@@ -11,6 +12,7 @@
 // Nothing secret is stored here: the Resend key is read from the Vault.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import nodemailer from "npm:nodemailer@6";
 
 const BUCKET = "booking-files";
 const ATTACH_LIMIT = 25 * 1024 * 1024; // bytes attached per email; Resend allows 40 MB once encoded
@@ -41,7 +43,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   const db = createClient(Deno.env.get("SUPABASE_URL")!, serverKey(), { auth: { persistSession: false } });
-  const result = { sent: 0, waiting: 0, failed: 0, purged: 0 };
+  const result: Record<string, number | string> = { sent: 0, waiting: 0, failed: 0, purged: 0, client_sent: 0, client_failed: 0 };
 
   try {
     const { data: cfg, error: cfgErr } = await db.rpc("alert_config");
@@ -61,21 +63,24 @@ Deno.serve(async (req) => {
 
       try {
         await sendAlert(db, cfg, p.id, files);
-        result.sent++;
+        (result.sent as number)++;
       } catch (e) {
         console.error("Alert failed for", p.reference, e);
         await db.rpc("release_booking_alert", { p_id: p.id });
-        result.failed++;
+        (result.failed as number)++;
       }
     }
 
-    // 2. Files emailed more than 14 days ago
+    // 2. Emails to clients when the studio presses Confirmed, Paid or Cancelled
+    await sendClientEmails(db, result);
+
+    // 3. Files emailed more than 14 days ago
     const { data: old } = await db.rpc("purgeable_booking_files");
     for (const o of old ?? []) {
       const { error: rmErr } = await db.storage.from(BUCKET).remove(o.paths);
       if (rmErr) { console.error("Could not delete files for", o.id, rmErr); continue; }
       await db.rpc("mark_files_purged", { p_id: o.id });
-      result.purged++;
+      (result.purged as number)++;
     }
   } catch (e) {
     console.error(e);
@@ -83,6 +88,53 @@ Deno.serve(async (req) => {
   }
   return json(result);
 });
+
+// Client emails go out from the studio Gmail (app password in the Vault as gmail_app_password).
+// deno-lint-ignore no-explicit-any
+async function sendClientEmails(db: any, result: Record<string, number | string>) {
+  const { data: pending, error } = await db.rpc("pending_client_emails");
+  if (error) {
+    // client-emails.sql hasn't been run yet
+    result.client_emails = "not set up: " + error.message;
+    return;
+  }
+  if (!pending?.length) return;
+
+  const { data: mail, error: cfgErr } = await db.rpc("client_email_config");
+  if (cfgErr || !mail?.gmail_user || !mail?.gmail_app_password) {
+    result.client_emails = "not set up: add gmail_app_password to the Vault";
+    return;
+  }
+  const smtp = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: { user: mail.gmail_user, pass: String(mail.gmail_app_password).replace(/\s/g, "") },
+  });
+
+  for (const p of pending) {
+    const { data: claimed } = await db.rpc("claim_client_email", { p_id: p.id, p_kind: p.kind });
+    if (!claimed) continue; // already sent by another run, or the status changed again
+    try {
+      const { data: email, error: contentErr } = await db.rpc("client_email_for", { p_id: p.id, p_kind: p.kind });
+      if (contentErr) throw contentErr;
+      if (!email) throw new Error("Booking not found");
+      await smtp.sendMail({
+        from: { name: "Altura Hertz Productions", address: mail.gmail_user },
+        to: email.to,
+        replyTo: mail.gmail_user,
+        subject: email.subject,
+        html: email.html,
+        text: email.text,
+      });
+      (result.client_sent as number)++;
+    } catch (e) {
+      console.error("Client email failed for", p.reference, p.kind, e);
+      await db.rpc("release_client_email", { p_id: p.id, p_kind: p.kind });
+      (result.client_failed as number)++;
+    }
+  }
+}
 
 // deno-lint-ignore no-explicit-any
 async function sendAlert(db: any, cfg: any, id: string, files: FileStatus[]) {

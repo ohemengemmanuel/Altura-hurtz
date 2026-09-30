@@ -25,6 +25,7 @@ window.AH_CONFIG = {
   // Session start times offered in the booking form (24 hour clock).
   sessionStartTimes: ["11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"],
   maxSessionHours: 6,
+  holdHours: 3,             // a confirmed slot is held this long for payment; keep in step with hold_hours in Supabase
   closingTime: "23:00",     // sessions must end by this time
   maxTracks: 20,
 

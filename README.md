@@ -32,6 +32,9 @@ Booking forms save to a Supabase database, and the studio manages them at `/stud
 6. Project Settings > API: copy the Project URL and the publishable key into `supabase` in `development/js/config.js`.
 
 7. Email alerts for new bookings, with the client's files attached: sign up at https://resend.com, create an API key, and save it in Supabase > Integrations > Vault as a secret named `resend_api_key`. Deploy the Edge Function in `supabase/functions/booking-alert/index.ts` (Edge Functions > Deploy a new function > Via Editor, name `booking-alert`, then turn off "Verify JWT" in its settings). Then run `supabase/email-alerts.sql` in the SQL Editor. Files too big to attach come as 14-day download links, and uploaded files are deleted from Supabase 14 days after the email to keep storage within the free plan.
+8. Automatic client emails and slot holds: turn on 2-Step Verification for the studio Google account, create an app password at https://myaccount.google.com/apppasswords, and save it in the Vault as `gmail_app_password`. Run `supabase/client-emails.sql`, then paste the latest `supabase/functions/booking-alert/index.ts` into the booking-alert function and deploy it again. Set the payment details clients see:
+   `update public.notification_settings set payment_instructions = 'MTN MoMo: 024 000 0000 (Account name)';`
+   Pressing Confirmed on the dashboard emails the client the amount and payment details and holds the slot for 3 hours (`hold_hours`). Pressing Paid emails a "payment received" note and blocks the slot for good. Pressing Cancelled can email a cancellation. The booking form greys out taken times.
 
 Until step 6 is done, clients get a booking summary to send on WhatsApp or email instead. The same happens if a submission fails.
 
