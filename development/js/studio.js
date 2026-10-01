@@ -218,12 +218,11 @@ function startLive() {
       // Keep the open booking current (for example "Payment details emailed" appearing).
       if (payload.new && payload.new.id === openId && !confirmDialog.open) refreshOpen();
     })
-    .subscribe((status) => $("live").classList.toggle("is-on", status === "SUBSCRIBED"));
+    .subscribe();
 }
 
 function stopLive() {
   if (channel) { supabase.removeChannel(channel); channel = null; }
-  $("live").classList.remove("is-on");
 }
 
 function updateTitle() {

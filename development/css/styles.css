@@ -147,6 +147,7 @@ p { margin: 0; }
   .site-header + main { margin-top: -68px; }
   .hero .hero-inner { padding-top: calc(clamp(80px, 14vw, 170px) + 68px); }
   .page-hero .hero-inner { padding-top: calc(clamp(56px, 9vw, 110px) + 68px); }
+  .page-hero:has(+ #book) .hero-inner { padding-top: calc(clamp(40px, 6vw, 76px) + 68px); }
   /* Soft dark fade at the top of the photo so the nav links stay readable */
   .hero::before, .page-hero::before {
     content: ""; position: absolute; left: 0; right: 0; top: 0; height: 150px; z-index: 1;
@@ -442,15 +443,25 @@ p { margin: 0; }
 .breadcrumb a:hover { color: var(--text); }
 .breadcrumb .material-symbols-rounded { font-size: 18px; }
 
-.price-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Price facts in the page hero: plain text separated by dots, no pill outline or background,
+   so they read as information rather than as buttons. */
+.price-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 0; }
 .price-tag {
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--mono); font-size: 14px;
-  padding: 8px 14px; border-radius: 999px;
-  background: rgba(2, 1, 42, .75); border: 1px solid var(--line-strong);
-  color: var(--price);
+  color: var(--ah-cloud);
 }
-.price-tag .material-symbols-rounded { font-size: 18px; color: var(--muted); }
+.price-tag:first-child { color: var(--price); }
+.price-tag + .price-tag::before {
+  content: ""; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--muted); margin-inline: 14px 8px; opacity: .7;
+}
+.price-tag .material-symbols-rounded { font-size: 17px; color: var(--muted); }
+
+/* Booking pages: tighten the gap between the hero and the form so the top of the form
+   peeks above the fold and visitors can tell the page continues. */
+.page-hero:has(+ #book) .hero-inner { padding-bottom: clamp(24px, 3.5vw, 40px); }
+.page-hero + #book { padding-top: clamp(12px, 2vw, 24px); }
 
 /* Sections */
 .section { padding-block: clamp(80px, 11vw, 136px); }
@@ -762,6 +773,7 @@ p { margin: 0; }
     min-height: 72px;
   }
   .service-card .card-media { height: 100%; min-height: 72px; }
+  .service-card .card-media img { position: absolute; inset: 0; }
   .service-card .card-media::after { display: none; }
   .card-media .card-icon { display: none; }
   .card-media .card-vinyl { width: 55%; right: -18%; bottom: -18%; }
@@ -1528,7 +1540,12 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.8); }
 .studio-user { display: flex; align-items: center; gap: 14px; font-size: 14px; min-width: 0; }
 .studio-user[hidden] { display: none; }
 .studio-user .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@media (max-width: 560px) { .studio-user .muted { display: none; } }
+@media (max-width: 560px) {
+  .studio-user .muted { display: none; }
+  /* Phones: sign out shrinks to just its icon */
+  #sign-out { gap: 0; padding: 8px; }
+  #sign-out .sign-out-label { display: none; }
+}
 .studio-main { padding-block: clamp(28px, 5vw, 48px) 80px; }
 .studio-main > [hidden] { display: none; }
 .btn-sm { padding: 7px 14px; font-size: 13px; }
@@ -1565,12 +1582,6 @@ input[type="password"], input[type="search"] {
 .studio-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
 .studio-head h1 { font-size: clamp(28px, 3.6vw, 40px); }
 .studio-head-actions { display: flex; align-items: center; gap: 12px; }
-.live { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
-.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); }
-.live.is-on { color: var(--text); }
-.live.is-on i { background: #3ddc84; box-shadow: 0 0 0 0 rgba(61, 220, 132, .6); animation: live-pulse 2s infinite; }
-@keyframes live-pulse { 70% { box-shadow: 0 0 0 7px rgba(61, 220, 132, 0); } 100% { box-shadow: 0 0 0 0 rgba(61, 220, 132, 0); } }
-@media (prefers-reduced-motion: reduce) { .live.is-on i { animation: none; } }
 
 .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
 @media (max-width: 860px) { .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -1737,3 +1748,41 @@ button.stat:hover { border-color: var(--line-strong); }
 }
 .toast .material-symbols-rounded { color: var(--accent); font-size: 20px; }
 .toast[hidden] { display: none; }
+
+/* Phones (v1.18.0): tighter spacing and sizing so pages fit a phone screen in Chrome
+   instead of feeling zoomed in. Desktop and tablet layouts are unchanged. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+@media (max-width: 620px) {
+  :root { --gutter: 16px; }
+  .section { padding-block: 56px; }
+  .section-head { margin-bottom: 28px; gap: 12px; }
+  .site-footer { padding-block: 44px 32px; }
+  .footer-grid { gap: 32px; }
+  .footer-base { margin-top: 36px; }
+
+  /* Heroes: less empty space, and a darker wash so text stays readable over the photo */
+  .hero .hero-inner { padding-block: 56px 48px; gap: 20px; }
+  .hero h1 { font-size: clamp(34px, 10vw, 42px); }
+  .hero .lede { font-size: 16.5px; }
+  .page-hero .hero-inner { padding-block: 36px 32px; gap: 20px; }
+  .page-hero h1 { font-size: clamp(28px, 8.4vw, 34px); }
+  .hero-media::after, .page-hero.has-image .hero-media::after {
+    background: linear-gradient(180deg, rgba(3,1,4,.6) 0%, rgba(3,1,4,.72) 50%, rgba(3,1,4,1) 100%);
+  }
+  h2 { font-size: clamp(26px, 7.6vw, 30px); }
+
+  /* Cards and forms: one layer of padding instead of two stacked on narrow screens */
+  .form-card { padding: 20px 16px; gap: 30px; }
+  .summary { padding: 20px 16px; }
+  .steps { gap: 12px; }
+  .steps li { padding: 20px; }
+  .policy-list li { padding: 16px; gap: 12px; }
+  .contact-grid { gap: 12px; }
+  .contact-item { padding: 20px; }
+  .cta-band { padding-top: 28px; padding-inline: 20px; }
+  .choice-grid { grid-template-columns: 1fr; }
+
+  /* 16px fields stop Chrome on iPhone zooming the page in when a field is tapped */
+  input[type="text"], input[type="email"], input[type="tel"], input[type="number"],
+  input[type="date"], input[type="url"], select, textarea { font-size: 16px; }
+}
