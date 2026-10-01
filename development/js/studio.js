@@ -161,6 +161,26 @@ $("reset-form").addEventListener("submit", async (e) => {
 
 $("sign-out").addEventListener("click", () => supabase.auth.signOut());
 
+// Eye button on password boxes: show or hide what has been typed.
+document.querySelectorAll("[data-toggle-password]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const input = btn.parentElement.querySelector("input");
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    btn.setAttribute("aria-pressed", String(show));
+    btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    btn.querySelector(".material-symbols-rounded").textContent = show ? "visibility_off" : "visibility";
+    input.focus();
+  });
+});
+// Hide the password again after signing in or saving, so it isn't left on screen.
+["login-form", "reset-form"].forEach((id) => $(id).addEventListener("submit", () => {
+  $(id).querySelectorAll("[data-toggle-password]").forEach((btn) => {
+    const input = btn.parentElement.querySelector("input");
+    if (input.type === "text") btn.click();
+  });
+}));
+
 /* Data */
 async function load() {
   const list = $("booking-list");

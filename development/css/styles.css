@@ -1544,6 +1544,16 @@ input[type="password"], input[type="search"] {
   background: var(--ah-midnight); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 11px 13px;
 }
 
+.password-field { position: relative; }
+.password-field input { padding-right: 48px; }
+.reveal-btn {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 40px; display: grid; place-items: center;
+  border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--muted); cursor: pointer;
+}
+.reveal-btn:hover, .reveal-btn[aria-pressed="true"] { color: var(--text); }
+.reveal-btn .material-symbols-rounded { font-size: 21px; }
+
 .studio-panel { display: grid; justify-items: center; gap: 14px; text-align: center; max-width: 440px; margin: clamp(24px, 8vh, 80px) auto 0; }
 .studio-panel h1 { font-size: clamp(26px, 3.4vw, 34px); }
 .studio-panel-icon { font-size: 34px; width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: radial-gradient(circle at 30% 30%, var(--ah-neon-violet), var(--ah-studio-blue)); }
